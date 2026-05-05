@@ -1,33 +1,20 @@
 "use client";
 
 import { FileLock2, History, ShieldCheck, Siren } from "lucide-react";
-import { useState } from "react";
-import { guardPermissions, ledger } from "@/data/nova";
+import { ledger } from "@/data/nova";
 import { WindowFrame } from "@/components/desktop/WindowFrame";
 import { cn } from "@/lib/utils";
+import type { NovaSystemActions, NovaSystemState } from "@/lib/nova-system";
 
 type NovaGuardWindowProps = {
+  system: NovaSystemState;
+  systemActions: NovaSystemActions;
   onClose?: () => void;
   onFocus?: () => void;
 };
 
-export function NovaGuardWindow({ onClose, onFocus }: NovaGuardWindowProps) {
-  const [permissions, setPermissions] = useState(guardPermissions);
-  const enabledCount = permissions.filter((permission) => permission.enabled).length;
-  const [guardNote, setGuardNote] = useState("Nova asks before reading sensitive locations.");
-
-  function togglePermission(name: string) {
-    const permission = permissions.find((item) => item.name === name);
-    if (permission) {
-      setGuardNote(`${permission.name} is now ${permission.enabled ? "limited" : "enabled"}.`);
-    }
-
-    setPermissions((current) =>
-      current.map((currentPermission) =>
-        currentPermission.name === name ? { ...currentPermission, enabled: !currentPermission.enabled } : currentPermission
-      )
-    );
-  }
+export function NovaGuardWindow({ system, systemActions, onClose, onFocus }: NovaGuardWindowProps) {
+  const enabledCount = system.guardPermissions.filter((permission) => permission.enabled).length;
 
   return (
     <WindowFrame
@@ -43,7 +30,7 @@ export function NovaGuardWindow({ onClose, onFocus }: NovaGuardWindowProps) {
         <div className="glass-card">
           <FileLock2 size={20} />
           <h3>Protected folders</h3>
-          <p>{guardNote}</p>
+          <p>{system.guardNote}</p>
           <div className="metric">7</div>
         </div>
         <div className="glass-card">
@@ -64,7 +51,7 @@ export function NovaGuardWindow({ onClose, onFocus }: NovaGuardWindowProps) {
         <div className="glass-card">
           <h3>Permissions</h3>
           <div className="stack-list">
-            {permissions.map((permission) => (
+            {system.guardPermissions.map((permission) => (
               <div className="permission-row" key={permission.name}>
                 <span className="row-title">
                   <ShieldCheck size={16} />
@@ -76,7 +63,7 @@ export function NovaGuardWindow({ onClose, onFocus }: NovaGuardWindowProps) {
                 <button
                   className={cn("toggle", permission.enabled && "on")}
                   type="button"
-                  onClick={() => togglePermission(permission.name)}
+                  onClick={() => systemActions.toggleGuardPermission(permission.name)}
                   aria-label={`${permission.name} ${permission.enabled ? "enabled" : "disabled"}`}
                   aria-pressed={permission.enabled}
                 >

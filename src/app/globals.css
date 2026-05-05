@@ -44,6 +44,8 @@ button {
 }
 
 .nova-root {
+  --nova-accent: #7467ff;
+  --nova-glass-alpha: 0.76;
   position: relative;
   min-height: 100svh;
   overflow: hidden;
@@ -51,6 +53,35 @@ button {
     radial-gradient(circle at 64% 52%, rgba(255, 229, 244, 0.74), transparent 12%),
     radial-gradient(circle at 66% 8%, rgba(116, 103, 255, 0.55), transparent 28%),
     linear-gradient(125deg, #071234 0%, #182968 42%, #8d8fff 64%, #101b52 100%);
+}
+
+.nova-root.vibe-dusk {
+  background:
+    radial-gradient(circle at 64% 52%, rgba(255, 207, 226, 0.52), transparent 12%),
+    radial-gradient(circle at 66% 8%, rgba(142, 108, 176, 0.5), transparent 28%),
+    linear-gradient(125deg, #0a1230 0%, #2d2a68 44%, #9b83bc 66%, #111843 100%);
+}
+
+.nova-root.vibe-aurora {
+  background:
+    radial-gradient(circle at 64% 52%, rgba(190, 255, 238, 0.48), transparent 12%),
+    radial-gradient(circle at 66% 8%, rgba(69, 210, 196, 0.45), transparent 28%),
+    linear-gradient(125deg, #061832 0%, #123c68 42%, #63d4ce 64%, #0d1b4c 100%);
+}
+
+.nova-root.vibe-void {
+  background:
+    radial-gradient(circle at 64% 52%, rgba(88, 95, 151, 0.3), transparent 12%),
+    radial-gradient(circle at 66% 8%, rgba(53, 54, 106, 0.45), transparent 28%),
+    linear-gradient(125deg, #020616 0%, #08132f 42%, #202866 64%, #030817 100%);
+}
+
+.nova-root.mode-dim .star-field {
+  opacity: 0.24;
+}
+
+.nova-root.mode-focus .aurora-ribbon {
+  opacity: 0.34;
 }
 
 .nova-root::before {
@@ -190,7 +221,7 @@ button {
 .rail-button.active {
   transform: translateY(-1px);
   color: white;
-  background: rgba(126, 123, 255, 0.44);
+  background: color-mix(in srgb, var(--nova-accent) 56%, transparent);
   box-shadow: 0 0 24px rgba(132, 117, 255, 0.46);
 }
 
@@ -364,7 +395,7 @@ button {
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.58);
   border-radius: 22px;
-  background: var(--glass);
+  background: rgba(247, 249, 255, var(--nova-glass-alpha));
   color: var(--ink);
   box-shadow: var(--shadow);
   backdrop-filter: blur(28px) saturate(1.2);
@@ -839,7 +870,7 @@ button {
 }
 
 .mode-card.active {
-  border-color: #7568ff;
+  border-color: var(--nova-accent);
   color: #433ec0;
   background: rgba(255, 255, 255, 0.48);
 }
@@ -1113,7 +1144,7 @@ button {
 .primary-button {
   padding: 0 18px;
   color: white;
-  background: linear-gradient(135deg, #5fd8ff, #7568ff 58%, #9d7cff);
+  background: linear-gradient(135deg, #5fd8ff, var(--nova-accent) 58%, #9d7cff);
   box-shadow: 0 14px 28px rgba(94, 87, 255, 0.28);
 }
 

@@ -1,27 +1,19 @@
 "use client";
 
 import { Boxes, Check, FolderKanban, Layers3, Plus, Workflow } from "lucide-react";
-import { useState } from "react";
-import { spaces } from "@/data/nova";
 import { WindowFrame } from "@/components/desktop/WindowFrame";
 import { cn } from "@/lib/utils";
+import type { NovaSystemActions, NovaSystemState } from "@/lib/nova-system";
 
 type SpacesWindowProps = {
+  system: NovaSystemState;
+  systemActions: NovaSystemActions;
   onClose?: () => void;
   onFocus?: () => void;
 };
 
-export function SpacesWindow({ onClose, onFocus }: SpacesWindowProps) {
-  const [activeSpace, setActiveSpace] = useState(spaces[0][0]);
-  const [draftSpaces, setDraftSpaces] = useState<typeof spaces>([]);
-  const allSpaces = [...spaces, ...draftSpaces];
-  const activeSpaceDetails = allSpaces.find((space) => space[0] === activeSpace) ?? allSpaces[0];
-
-  function createSpace() {
-    const newSpace = ["Launch Lab", "3 apps", "4 automations", "Draft"] as (typeof spaces)[number];
-    setDraftSpaces((current) => (current.some((space) => space[0] === newSpace[0]) ? current : [...current, newSpace]));
-    setActiveSpace(newSpace[0]);
-  }
+export function SpacesWindow({ system, systemActions, onClose, onFocus }: SpacesWindowProps) {
+  const activeSpaceDetails = system.spaces.find((space) => space[0] === system.activeSpace) ?? system.spaces[0];
 
   return (
     <WindowFrame
@@ -58,16 +50,16 @@ export function SpacesWindow({ onClose, onFocus }: SpacesWindowProps) {
         <div className="glass-card">
           <h3>Your spaces</h3>
           <div className="stack-list">
-            {allSpaces.map((space) => (
+            {system.spaces.map((space) => (
               <button
-                className={cn("space-row", activeSpace === space[0] && "selected")}
+                className={cn("space-row", system.activeSpace === space[0] && "selected")}
                 key={space[0]}
                 type="button"
-                onClick={() => setActiveSpace(space[0])}
-                aria-pressed={activeSpace === space[0]}
+                onClick={() => systemActions.setActiveSpace(space[0])}
+                aria-pressed={system.activeSpace === space[0]}
               >
                 <span className="row-title">
-                  {activeSpace === space[0] ? <Check size={16} /> : <Boxes size={16} />}
+                  {system.activeSpace === space[0] ? <Check size={16} /> : <Boxes size={16} />}
                   <span>
                     <strong>{space[0]}</strong>
                     <span>
@@ -87,7 +79,7 @@ export function SpacesWindow({ onClose, onFocus }: SpacesWindowProps) {
             anything.
           </p>
           <div style={{ marginTop: 18 }}>
-            <button className="primary-button" type="button" onClick={createSpace}>
+            <button className="primary-button" type="button" onClick={systemActions.createSpace}>
               <Plus size={16} />
               New space
             </button>

@@ -1,31 +1,20 @@
 "use client";
 
 import { Bot, BrainCircuit, KeyRound, PlugZap, Workflow } from "lucide-react";
-import { useState } from "react";
-import { aiProviders } from "@/data/nova";
 import { WindowFrame } from "@/components/desktop/WindowFrame";
 import { cn } from "@/lib/utils";
+import type { NovaSystemActions, NovaSystemState } from "@/lib/nova-system";
 
 type AiCenterWindowProps = {
+  system: NovaSystemState;
+  systemActions: NovaSystemActions;
   onClose?: () => void;
   onFocus?: () => void;
 };
 
-export function AiCenterWindow({ onClose, onFocus }: AiCenterWindowProps) {
-  const [providers, setProviders] = useState(aiProviders);
-  const [selectedProvider, setSelectedProvider] = useState(aiProviders[1].name);
-  const activeProvider = providers.find((provider) => provider.name === selectedProvider) ?? providers[0];
-  const connectedCount = providers.filter((provider) => provider.state !== "Disconnected").length;
-
-  function toggleSelectedProvider() {
-    setProviders((current) =>
-      current.map((provider) =>
-        provider.name === activeProvider.name
-          ? { ...provider, state: provider.state === "Disconnected" ? "Connected" : "Disconnected" }
-          : provider
-      )
-    );
-  }
+export function AiCenterWindow({ system, systemActions, onClose, onFocus }: AiCenterWindowProps) {
+  const activeProvider = system.aiProviders.find((provider) => provider.name === system.selectedProvider) ?? system.aiProviders[0];
+  const connectedCount = system.aiProviders.filter((provider) => provider.state !== "Disconnected").length;
 
   return (
     <WindowFrame
@@ -62,13 +51,13 @@ export function AiCenterWindow({ onClose, onFocus }: AiCenterWindowProps) {
         <div className="glass-card">
           <h3>Providers</h3>
           <div className="stack-list">
-            {providers.map((provider) => (
+            {system.aiProviders.map((provider) => (
               <button
-                className={cn("status-row", selectedProvider === provider.name && "selected")}
+                className={cn("status-row", system.selectedProvider === provider.name && "selected")}
                 key={provider.name}
                 type="button"
-                onClick={() => setSelectedProvider(provider.name)}
-                aria-pressed={selectedProvider === provider.name}
+                onClick={() => systemActions.selectProvider(provider.name)}
+                aria-pressed={system.selectedProvider === provider.name}
               >
                 <span className="row-title">
                   <Bot size={16} />
@@ -96,7 +85,7 @@ export function AiCenterWindow({ onClose, onFocus }: AiCenterWindowProps) {
             <span className="module-chip">Role: {activeProvider.role}</span>
           </div>
           <div style={{ marginTop: 18 }}>
-            <button className="primary-button" type="button" onClick={toggleSelectedProvider}>
+            <button className="primary-button" type="button" onClick={systemActions.toggleSelectedProvider}>
               <PlugZap size={16} />
               {activeProvider.state === "Disconnected" ? "Connect provider" : "Disconnect provider"}
             </button>

@@ -1,25 +1,22 @@
 "use client";
 
 import { Activity, CalendarClock, FolderOpen, PanelsTopLeft, ShieldCheck, Sparkles, Workflow } from "lucide-react";
-import { useState } from "react";
 import { ledger, type WindowKey } from "@/data/nova";
 import { WindowFrame } from "@/components/desktop/WindowFrame";
+import type { NovaSystemActions, NovaSystemState } from "@/lib/nova-system";
 
 type NovaHubWindowProps = {
+  system: NovaSystemState;
+  systemActions: NovaSystemActions;
   onClose?: () => void;
   onFocus?: () => void;
   onCreateApp: () => void;
   onOpenWindow: (window: WindowKey) => void;
 };
 
-export function NovaHubWindow({ onClose, onFocus, onCreateApp, onOpenWindow }: NovaHubWindowProps) {
-  const [todayActions, setTodayActions] = useState(12);
-  const [hubSignal, setHubSignal] = useState("System is calm. Builder Studio is still the active mission.");
-
-  function runHubPulse() {
-    setTodayActions((current) => current + 1);
-    setHubSignal("Nova refreshed files, spaces, guard state, and AI routing.");
-  }
+export function NovaHubWindow({ system, systemActions, onClose, onFocus, onCreateApp, onOpenWindow }: NovaHubWindowProps) {
+  const connectedCount = system.aiProviders.filter((provider) => provider.state !== "Disconnected").length;
+  const enabledPermissionCount = system.guardPermissions.filter((permission) => permission.enabled).length;
 
   return (
     <WindowFrame
@@ -30,26 +27,26 @@ export function NovaHubWindow({ onClose, onFocus, onCreateApp, onOpenWindow }: N
       tone="dark"
       onClose={onClose}
       onFocus={onFocus}
-      onAssist={runHubPulse}
+      onAssist={systemActions.runHubPulse}
     >
       <div className="cards-grid">
-        <button className="glass-card action-card" type="button" onClick={runHubPulse}>
+        <button className="glass-card action-card" type="button" onClick={systemActions.runHubPulse}>
           <Activity size={20} />
           <h3>Today</h3>
-          <p>Nova prepared Builder Studio, surfaced client notes, and kept sensitive actions visible.</p>
-          <div className="metric">{todayActions}</div>
+          <p>{system.hubSignal}</p>
+          <div className="metric">{system.hubActions}</div>
         </button>
         <button className="glass-card action-card" type="button" onClick={() => onOpenWindow("ai-center")}>
           <Workflow size={20} />
           <h3>AI routing</h3>
-          <p>Codex handles app creation, Gemini researches, and Local AI stays reserved for private notes.</p>
-          <div className="metric">5</div>
+          <p>{system.selectedProvider} is selected. Disconnected providers stay visible for routing decisions.</p>
+          <div className="metric">{connectedCount}</div>
         </button>
         <button className="glass-card action-card" type="button" onClick={() => onOpenWindow("nova-guard")}>
           <ShieldCheck size={20} />
           <h3>Guard</h3>
           <p>Approvals are active for installs, terminal access, and sensitive AI data transfers.</p>
-          <div className="metric">On</div>
+          <div className="metric">{enabledPermissionCount}</div>
         </button>
       </div>
 
@@ -97,7 +94,7 @@ export function NovaHubWindow({ onClose, onFocus, onCreateApp, onOpenWindow }: N
       <div className="wide-grid">
         <div className="glass-card">
           <h3>Open spaces</h3>
-          <p>{hubSignal}</p>
+          <p>{system.activeSpace} is active with {system.installedPacks.length} installed packs and {system.files.length} indexed files.</p>
           <div style={{ marginTop: 16 }}>
             <button className="ghost-button" type="button" onClick={() => onOpenWindow("spaces")}>
               <Workflow size={16} />
@@ -114,6 +111,9 @@ export function NovaHubWindow({ onClose, onFocus, onCreateApp, onOpenWindow }: N
             </span>
             <span className="module-chip">
               <FolderOpen size={14} /> Design
+            </span>
+            <span className="module-chip">
+              <FolderOpen size={14} /> {system.files.length} files
             </span>
           </div>
         </div>

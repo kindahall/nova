@@ -20,6 +20,27 @@ export type OnboardingStep = {
   status: string;
 };
 
+export type NovaFile = [name: string, type: string, modified: string, size: string];
+
+export type AiProvider = {
+  name: string;
+  role: string;
+  state: "Connected" | "Local" | "Disconnected";
+  level: number;
+};
+
+export type GuardPermission = {
+  name: string;
+  mode: string;
+  enabled: boolean;
+};
+
+export type StoreItem = [name: string, description: string, action: string];
+
+export type NovaSpace = [name: string, apps: string, automations: string, state: string];
+
+export type LedgerItem = [time: string, action: string, state: string];
+
 export const onboardingSteps: OnboardingStep[] = [
   {
     title: "Connect to the internet",
@@ -157,7 +178,7 @@ export const folders = [
   { name: "Archive", count: "6 items", tone: "indigo" },
 ];
 
-export const recentFiles = [
+export const recentFiles: NovaFile[] = [
   ["Nova_Concept.pdf", "PDF Document", "May 20, 10:21 AM", "4.3 MB"],
   ["Project_Plan.nova", "Nova Document", "May 19, 4:08 PM", "28.6 MB"],
   ["Landscape_01.png", "PNG Image", "May 18, 2:33 PM", "5.7 MB"],
@@ -165,7 +186,7 @@ export const recentFiles = [
   ["Notes.txt", "Text Document", "May 17, 11:42 AM", "1.2 KB"],
 ];
 
-export const aiProviders = [
+export const aiProviders: AiProvider[] = [
   { name: "ChatGPT", role: "General assistant", state: "Connected", level: 92 },
   { name: "Codex", role: "App builder", state: "Connected", level: 88 },
   { name: "Gemini", role: "Research", state: "Connected", level: 79 },
@@ -173,7 +194,7 @@ export const aiProviders = [
   { name: "Local AI", role: "Private tasks", state: "Local", level: 63 },
 ];
 
-export const guardPermissions = [
+export const guardPermissions: GuardPermission[] = [
   { name: "Access files", mode: "Ask for protected folders", enabled: true },
   { name: "Install apps", mode: "Require approval", enabled: true },
   { name: "Use terminal", mode: "Approval each session", enabled: true },
@@ -182,14 +203,14 @@ export const guardPermissions = [
   { name: "Background actions", mode: "Visible ledger", enabled: true },
 ];
 
-export const storeItems = [
+export const storeItems: StoreItem[] = [
   ["Founder Pack", "CRM, invoices, pitch room", "Installed"],
   ["Creator Studio", "Scripts, shoots, publishing", "Add"],
   ["Developer Lab", "Repos, terminals, agents", "Add"],
   ["Automation Desk", "Recurring tasks and alerts", "Add"],
 ];
 
-export const spaces = [
+export const spaces: NovaSpace[] = [
   ["Builder Studio", "4 apps", "12 automations", "Active"],
   ["Client Work", "7 apps", "3 automations", "Warm"],
   ["Creator Lab", "5 apps", "8 automations", "Quiet"],
@@ -205,7 +226,7 @@ export const generationSteps = [
   "Opening generated Nova App",
 ];
 
-export const ledger = [
+export const ledger: LedgerItem[] = [
   ["09:42", "Nova asked before reading Documents/Clients", "Approved"],
   ["09:39", "Codex generated CRM module shell", "Visible"],
   ["09:36", "Gemini summarized market notes", "Private"],

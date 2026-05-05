@@ -18,8 +18,11 @@ import { SpacesWindow } from "@/components/windows/SpacesWindow";
 import { DesktopIcons } from "@/components/desktop/DesktopIcons";
 import { SystemStatus } from "@/components/desktop/SystemStatus";
 import { NovaRail } from "@/components/rail/NovaRail";
+import type { NovaSystemActions, NovaSystemState } from "@/lib/nova-system";
 
 type DesktopShellProps = {
+  system: NovaSystemState;
+  systemActions: NovaSystemActions;
   activeWindows: WindowKey[];
   commandOpen: boolean;
   onOpen: (window: WindowKey) => void;
@@ -31,6 +34,8 @@ type DesktopShellProps = {
 };
 
 export function DesktopShell({
+  system,
+  systemActions,
   activeWindows,
   commandOpen,
   onOpen,
@@ -43,13 +48,31 @@ export function DesktopShell({
   function renderWindow(windowKey: WindowKey) {
     switch (windowKey) {
       case "my-space":
-        return <MySpaceWindow key={windowKey} onClose={() => onClose(windowKey)} onFocus={() => onOpen(windowKey)} />;
+        return (
+          <MySpaceWindow
+            key={windowKey}
+            system={system}
+            systemActions={systemActions}
+            onClose={() => onClose(windowKey)}
+            onFocus={() => onOpen(windowKey)}
+          />
+        );
       case "personalize":
-        return <PersonalizeWindow key={windowKey} onClose={() => onClose(windowKey)} onFocus={() => onOpen(windowKey)} />;
+        return (
+          <PersonalizeWindow
+            key={windowKey}
+            system={system}
+            systemActions={systemActions}
+            onClose={() => onClose(windowKey)}
+            onFocus={() => onOpen(windowKey)}
+          />
+        );
       case "nova-hub":
         return (
           <NovaHubWindow
             key={windowKey}
+            system={system}
+            systemActions={systemActions}
             onClose={() => onClose(windowKey)}
             onCreateApp={onCreateApp}
             onFocus={() => onOpen(windowKey)}
@@ -57,15 +80,55 @@ export function DesktopShell({
           />
         );
       case "ai-center":
-        return <AiCenterWindow key={windowKey} onClose={() => onClose(windowKey)} onFocus={() => onOpen(windowKey)} />;
+        return (
+          <AiCenterWindow
+            key={windowKey}
+            system={system}
+            systemActions={systemActions}
+            onClose={() => onClose(windowKey)}
+            onFocus={() => onOpen(windowKey)}
+          />
+        );
       case "nova-guard":
-        return <NovaGuardWindow key={windowKey} onClose={() => onClose(windowKey)} onFocus={() => onOpen(windowKey)} />;
+        return (
+          <NovaGuardWindow
+            key={windowKey}
+            system={system}
+            systemActions={systemActions}
+            onClose={() => onClose(windowKey)}
+            onFocus={() => onOpen(windowKey)}
+          />
+        );
       case "nova-store":
-        return <NovaStoreWindow key={windowKey} onClose={() => onClose(windowKey)} onFocus={() => onOpen(windowKey)} />;
+        return (
+          <NovaStoreWindow
+            key={windowKey}
+            system={system}
+            systemActions={systemActions}
+            onClose={() => onClose(windowKey)}
+            onFocus={() => onOpen(windowKey)}
+          />
+        );
       case "spaces":
-        return <SpacesWindow key={windowKey} onClose={() => onClose(windowKey)} onFocus={() => onOpen(windowKey)} />;
+        return (
+          <SpacesWindow
+            key={windowKey}
+            system={system}
+            systemActions={systemActions}
+            onClose={() => onClose(windowKey)}
+            onFocus={() => onOpen(windowKey)}
+          />
+        );
       case "offline-mode":
-        return <OfflineModePanel key={windowKey} onClose={() => onClose(windowKey)} onFocus={() => onOpen(windowKey)} />;
+        return (
+          <OfflineModePanel
+            key={windowKey}
+            system={system}
+            systemActions={systemActions}
+            onClose={() => onClose(windowKey)}
+            onFocus={() => onOpen(windowKey)}
+          />
+        );
       case "create-app":
         return (
           <CreateNovaAppWindow
@@ -76,7 +139,15 @@ export function DesktopShell({
           />
         );
       case "crm-app":
-        return <GeneratedCrmAppWindow key={windowKey} onClose={() => onClose(windowKey)} onFocus={() => onOpen(windowKey)} />;
+        return (
+          <GeneratedCrmAppWindow
+            key={windowKey}
+            system={system}
+            systemActions={systemActions}
+            onClose={() => onClose(windowKey)}
+            onFocus={() => onOpen(windowKey)}
+          />
+        );
       default:
         return null;
     }
@@ -88,7 +159,7 @@ export function DesktopShell({
       <div className="star-field" />
       <NovaRail activeWindows={activeWindows} onOpen={onOpen} onCommand={onOpenCommand} />
       <TopCommandBar onOpen={onOpenCommand} />
-      <SystemStatus />
+      <SystemStatus system={system} />
       <DesktopIcons onOpen={onOpen} />
 
       <section className="window-layer" aria-label="Nova desktop windows">

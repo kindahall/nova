@@ -1,28 +1,29 @@
 "use client";
 
 import { CloudOff, FolderCheck, HardDrive, RefreshCw, ShieldCheck, WifiOff } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { WindowFrame } from "@/components/desktop/WindowFrame";
+import type { NovaSystemActions, NovaSystemState } from "@/lib/nova-system";
 
 type OfflineModePanelProps = {
+  system: NovaSystemState;
+  systemActions: NovaSystemActions;
   onClose?: () => void;
   onFocus?: () => void;
 };
 
-export function OfflineModePanel({ onClose, onFocus }: OfflineModePanelProps) {
-  const [status, setStatus] = useState<"offline" | "checking" | "ready">("offline");
-
+export function OfflineModePanel({ system, systemActions, onClose, onFocus }: OfflineModePanelProps) {
   useEffect(() => {
-    if (status !== "checking") {
+    if (system.offlineStatus !== "checking") {
       return;
     }
 
-    const timer = window.setTimeout(() => setStatus("ready"), 900);
+    const timer = window.setTimeout(() => systemActions.setOfflineStatus("ready"), 900);
     return () => window.clearTimeout(timer);
-  }, [status]);
+  }, [system.offlineStatus, systemActions]);
 
   function checkConnection() {
-    setStatus("checking");
+    systemActions.setOfflineStatus("checking");
   }
 
   return (
@@ -40,11 +41,13 @@ export function OfflineModePanel({ onClose, onFocus }: OfflineModePanelProps) {
           <WifiOff size={20} />
           <h3>Cloud paused</h3>
           <p>
-            {status === "ready"
+            {system.offlineStatus === "ready"
               ? "Connection is available. Nova will still ask before resuming sensitive sync."
               : "Internet-dependent models, sync, and store downloads wait until reconnection."}
           </p>
-          <div className="metric">{status === "checking" ? "Checking" : status === "ready" ? "Ready" : "Paused"}</div>
+          <div className="metric">
+            {system.offlineStatus === "checking" ? "Checking" : system.offlineStatus === "ready" ? "Ready" : "Paused"}
+          </div>
         </div>
         <div className="glass-card">
           <HardDrive size={20} />
@@ -75,9 +78,13 @@ export function OfflineModePanel({ onClose, onFocus }: OfflineModePanelProps) {
           <h3>Reconnect</h3>
           <p>Nova will resume queued cloud work only after the connection returns and you approve anything sensitive.</p>
           <div style={{ marginTop: 18 }}>
-            <button className="primary-button" type="button" onClick={checkConnection} disabled={status === "checking"}>
-              <RefreshCw size={16} className={status === "checking" ? "spin" : undefined} />
-              {status === "ready" ? "Connection ready" : status === "checking" ? "Checking..." : "Check connection"}
+            <button className="primary-button" type="button" onClick={checkConnection} disabled={system.offlineStatus === "checking"}>
+              <RefreshCw size={16} className={system.offlineStatus === "checking" ? "spin" : undefined} />
+              {system.offlineStatus === "ready"
+                ? "Connection ready"
+                : system.offlineStatus === "checking"
+                  ? "Checking..."
+                  : "Check connection"}
             </button>
           </div>
         </div>

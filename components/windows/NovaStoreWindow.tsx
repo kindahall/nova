@@ -5,19 +5,18 @@ import { useEffect, useMemo, useState } from "react";
 import { storeItems } from "@/data/nova";
 import { WindowFrame } from "@/components/desktop/WindowFrame";
 import { cn } from "@/lib/utils";
+import type { NovaSystemActions, NovaSystemState } from "@/lib/nova-system";
 
 type NovaStoreWindowProps = {
+  system: NovaSystemState;
+  systemActions: NovaSystemActions;
   onClose?: () => void;
   onFocus?: () => void;
 };
 
-export function NovaStoreWindow({ onClose, onFocus }: NovaStoreWindowProps) {
+export function NovaStoreWindow({ system, systemActions, onClose, onFocus }: NovaStoreWindowProps) {
   const [query, setQuery] = useState("");
-  const [installed, setInstalled] = useState<string[]>(() =>
-    storeItems.filter((item) => item[2] === "Installed").map((item) => item[0])
-  );
   const [installing, setInstalling] = useState("");
-  const [activity, setActivity] = useState("Founder Pack is active in Builder Studio.");
 
   useEffect(() => {
     if (!installing) {
@@ -25,13 +24,12 @@ export function NovaStoreWindow({ onClose, onFocus }: NovaStoreWindowProps) {
     }
 
     const timer = window.setTimeout(() => {
-      setInstalled((current) => (current.includes(installing) ? current : [...current, installing]));
-      setActivity(`${installing} installed and pinned to the current space.`);
+      systemActions.installPack(installing);
       setInstalling("");
     }, 760);
 
     return () => window.clearTimeout(timer);
-  }, [installing]);
+  }, [installing, systemActions]);
 
   const visibleItems = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -47,13 +45,12 @@ export function NovaStoreWindow({ onClose, onFocus }: NovaStoreWindowProps) {
       return;
     }
 
-    if (installed.includes(name)) {
-      setActivity(`${name} opened as a live pack preview.`);
+    if (system.installedPacks.includes(name)) {
+      systemActions.openPackPreview(name);
       return;
     }
 
     setInstalling(name);
-    setActivity(`Installing ${name}...`);
   }
 
   function installFromIntent() {
@@ -93,8 +90,8 @@ export function NovaStoreWindow({ onClose, onFocus }: NovaStoreWindowProps) {
         <div className="glass-card">
           <Sparkles size={20} />
           <h3>Recommended for you</h3>
-          <p>{activity}</p>
-          <div className="metric">{installed.length}</div>
+          <p>{installing ? `Installing ${installing}...` : system.storeActivity}</p>
+          <div className="metric">{system.installedPacks.length}</div>
         </div>
         <div className="glass-card">
           <Download size={20} />
@@ -115,7 +112,7 @@ export function NovaStoreWindow({ onClose, onFocus }: NovaStoreWindowProps) {
           <h3>Featured packs</h3>
           <div className="stack-list">
             {visibleItems.map((item) => {
-              const isInstalled = installed.includes(item[0]);
+              const isInstalled = system.installedPacks.includes(item[0]);
               const isInstalling = installing === item[0];
               return (
                 <div className={cn("store-row", isInstalled && "selected")} key={item[0]}>

@@ -1,10 +1,12 @@
 "use client";
 
 import { Banknote, CalendarDays, ContactRound, FileText, LayoutDashboard, ListTodo, TrendingUp } from "lucide-react";
-import { useState } from "react";
 import { WindowFrame } from "@/components/desktop/WindowFrame";
+import type { NovaSystemActions, NovaSystemState } from "@/lib/nova-system";
 
 type GeneratedCrmAppWindowProps = {
+  system: NovaSystemState;
+  systemActions: NovaSystemActions;
   onClose?: () => void;
   onFocus?: () => void;
 };
@@ -111,9 +113,8 @@ const crmViews: Record<
   },
 };
 
-export function GeneratedCrmAppWindow({ onClose, onFocus }: GeneratedCrmAppWindowProps) {
-  const [activeView, setActiveView] = useState(crmTabs[0].label);
-  const view = crmViews[activeView];
+export function GeneratedCrmAppWindow({ system, systemActions, onClose, onFocus }: GeneratedCrmAppWindowProps) {
+  const view = crmViews[system.crmActiveView] ?? crmViews.Dashboard;
 
   return (
     <WindowFrame
@@ -131,11 +132,11 @@ export function GeneratedCrmAppWindow({ onClose, onFocus }: GeneratedCrmAppWindo
             const Icon = tab.icon;
             return (
               <button
-                className={activeView === tab.label ? "active" : undefined}
+                className={system.crmActiveView === tab.label ? "active" : undefined}
                 key={tab.label}
                 type="button"
-                onClick={() => setActiveView(tab.label)}
-                aria-pressed={activeView === tab.label}
+                onClick={() => systemActions.setCrmActiveView(tab.label)}
+                aria-pressed={system.crmActiveView === tab.label}
               >
                 <Icon size={15} /> {tab.label}
               </button>

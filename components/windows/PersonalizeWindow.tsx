@@ -1,10 +1,12 @@
 "use client";
 
 import { Bell, Check, Grid2X2, Info, Layout, Moon, Palette, Shield, SlidersHorizontal, Sun, Type, Volume2 } from "lucide-react";
-import { useState } from "react";
 import { WindowFrame } from "@/components/desktop/WindowFrame";
+import type { NovaSystemActions, NovaSystemState } from "@/lib/nova-system";
 
 type PersonalizeWindowProps = {
+  system: NovaSystemState;
+  systemActions: NovaSystemActions;
   onClose?: () => void;
   onFocus?: () => void;
 };
@@ -15,14 +17,9 @@ const modeOptions = [
   { label: "Light", icon: Sun },
   { label: "Dim", icon: Moon },
   { label: "Focus", icon: Bell },
-];
+] as const;
 
-export function PersonalizeWindow({ onClose, onFocus }: PersonalizeWindowProps) {
-  const [activeVibe, setActiveVibe] = useState(vibeOptions[0]);
-  const [activeAccent, setActiveAccent] = useState(accentOptions[0]);
-  const [activeMode, setActiveMode] = useState(modeOptions[0].label);
-  const [transparency, setTransparency] = useState(34);
-
+export function PersonalizeWindow({ system, systemActions, onClose, onFocus }: PersonalizeWindowProps) {
   return (
     <WindowFrame
       title="Personalize"
@@ -65,15 +62,15 @@ export function PersonalizeWindow({ onClose, onFocus }: PersonalizeWindowProps) 
           <div className="vibe-grid">
             {vibeOptions.map((vibe) => (
               <button
-                className={activeVibe === vibe ? "vibe-card active" : "vibe-card"}
+                className={system.theme.vibe === vibe ? "vibe-card active" : "vibe-card"}
                 key={vibe}
                 type="button"
-                onClick={() => setActiveVibe(vibe)}
-                aria-pressed={activeVibe === vibe}
+                onClick={() => systemActions.setTheme({ vibe })}
+                aria-pressed={system.theme.vibe === vibe}
               >
                 <div className={`vibe-preview ${vibe.toLowerCase()}`} />
                 <span>
-                  {activeVibe === vibe ? <Check size={12} /> : null} {vibe}
+                  {system.theme.vibe === vibe ? <Check size={12} /> : null} {vibe}
                 </span>
               </button>
             ))}
@@ -83,13 +80,13 @@ export function PersonalizeWindow({ onClose, onFocus }: PersonalizeWindowProps) 
           <div className="swatch-row">
             {accentOptions.map((color) => (
               <button
-                className={activeAccent === color ? "swatch active" : "swatch"}
+                className={system.theme.accent === color ? "swatch active" : "swatch"}
                 key={color}
                 style={{ background: color }}
                 type="button"
-                onClick={() => setActiveAccent(color)}
+                onClick={() => systemActions.setTheme({ accent: color })}
                 aria-label={`Use accent ${color}`}
-                aria-pressed={activeAccent === color}
+                aria-pressed={system.theme.accent === color}
               />
             ))}
           </div>
@@ -100,11 +97,11 @@ export function PersonalizeWindow({ onClose, onFocus }: PersonalizeWindowProps) 
               const Icon = mode.icon;
               return (
                 <button
-                  className={activeMode === mode.label ? "mode-card active" : "mode-card"}
+                  className={system.theme.mode === mode.label ? "mode-card active" : "mode-card"}
                   key={mode.label}
                   type="button"
-                  onClick={() => setActiveMode(mode.label)}
-                  aria-pressed={activeMode === mode.label}
+                  onClick={() => systemActions.setTheme({ mode: mode.label })}
+                  aria-pressed={system.theme.mode === mode.label}
                 >
                   <Icon size={22} />
                   <strong>{mode.label}</strong>
@@ -121,8 +118,8 @@ export function PersonalizeWindow({ onClose, onFocus }: PersonalizeWindowProps) 
               type="range"
               min="0"
               max="100"
-              value={transparency}
-              onChange={(event) => setTransparency(Number(event.target.value))}
+              value={system.theme.transparency}
+              onChange={(event) => systemActions.setTheme({ transparency: Number(event.target.value) })}
               aria-label="Window transparency"
             />
             <span>Opaque</span>

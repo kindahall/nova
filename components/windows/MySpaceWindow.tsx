@@ -2,11 +2,14 @@
 
 import { Clock, Database, Folder, Grid3X3, HardDrive, Home, Plus, Search, Share2, Star, Tags } from "lucide-react";
 import { useMemo, useState } from "react";
-import { folders, recentFiles } from "@/data/nova";
+import { folders } from "@/data/nova";
 import { WindowFrame } from "@/components/desktop/WindowFrame";
 import { cn } from "@/lib/utils";
+import type { NovaSystemActions, NovaSystemState } from "@/lib/nova-system";
 
 type MySpaceWindowProps = {
+  system: NovaSystemState;
+  systemActions: NovaSystemActions;
   onClose?: () => void;
   onFocus?: () => void;
 };
@@ -21,25 +24,19 @@ const sidebarItems = [
   { label: "Data Hub", icon: Database },
 ];
 
-export function MySpaceWindow({ onClose, onFocus }: MySpaceWindowProps) {
-  const [activeSection, setActiveSection] = useState(sidebarItems[0].label);
+export function MySpaceWindow({ system, systemActions, onClose, onFocus }: MySpaceWindowProps) {
   const [query, setQuery] = useState("");
-  const [files, setFiles] = useState(recentFiles);
   const visibleFiles = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     if (!normalizedQuery) {
-      return files;
+      return system.files;
     }
 
-    return files.filter((file) => file.join(" ").toLowerCase().includes(normalizedQuery));
-  }, [files, query]);
+    return system.files.filter((file) => file.join(" ").toLowerCase().includes(normalizedQuery));
+  }, [system.files, query]);
 
   function addFile() {
-    setFiles((current) => [
-      ["Untitled_Nova_App.nova", "Nova Document", "Just now", "16 KB"],
-      ...current.filter((file) => file[0] !== "Untitled_Nova_App.nova"),
-    ]);
-    setActiveSection("Recent");
+    systemActions.addFile();
     setQuery("");
   }
 
@@ -58,11 +55,11 @@ export function MySpaceWindow({ onClose, onFocus }: MySpaceWindowProps) {
             const Icon = item.icon;
             return (
               <button
-                className={cn("sidebar-item", activeSection === item.label && "active")}
+                className={cn("sidebar-item", system.activeFileSection === item.label && "active")}
                 key={item.label}
                 type="button"
-                onClick={() => setActiveSection(item.label)}
-                aria-pressed={activeSection === item.label}
+                onClick={() => systemActions.setFileSection(item.label)}
+                aria-pressed={system.activeFileSection === item.label}
               >
                 <Icon size={15} /> {item.label}
               </button>
@@ -80,7 +77,7 @@ export function MySpaceWindow({ onClose, onFocus }: MySpaceWindowProps) {
                   className="inline-search-input"
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
-                  placeholder={`Find anything in ${activeSection}`}
+                  placeholder={`Find anything in ${system.activeFileSection}`}
                   aria-label="Search My Space"
                 />
               </label>
