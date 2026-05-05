@@ -1,6 +1,20 @@
 "use client";
 
-import { Bot, Folder, Grid3X3, Music2, PanelsTopLeft, Play, Plus, Settings, Sparkles } from "lucide-react";
+import {
+  Bell,
+  Boxes,
+  Folder,
+  Grid3X3,
+  Music2,
+  PanelsTopLeft,
+  Play,
+  Plus,
+  Settings,
+  ShieldCheck,
+  Sparkles,
+  Store,
+  Workflow,
+} from "lucide-react";
 import type { ComponentType } from "react";
 import type { WindowKey } from "@/data/nova";
 import { cn } from "@/lib/utils";
@@ -11,19 +25,24 @@ type ActivityShelfProps = {
   onCommand: () => void;
 };
 
+const shelfRegistry: Record<WindowKey, { label: string; sublabel: string; icon: ComponentType<{ size?: number }> }> = {
+  "my-space": { label: "My Space", sublabel: "Explorer", icon: Folder },
+  personalize: { label: "Personalize", sublabel: "Settings", icon: Settings },
+  "nova-hub": { label: "Nova Hub", sublabel: "Overview", icon: Sparkles },
+  "ai-center": { label: "AI Center", sublabel: "Models", icon: Workflow },
+  "nova-guard": { label: "Nova Guard", sublabel: "Approvals", icon: ShieldCheck },
+  "nova-store": { label: "Nova Store", sublabel: "Packs", icon: Store },
+  spaces: { label: "Spaces", sublabel: "Missions", icon: Boxes },
+  "offline-mode": { label: "Offline", sublabel: "Local", icon: Folder },
+  "activity-center": { label: "Activity", sublabel: "System", icon: Bell },
+  "create-app": { label: "Builder", sublabel: "Nova App", icon: PanelsTopLeft },
+  "crm-app": { label: "ClientFlow", sublabel: "CRM", icon: PanelsTopLeft },
+};
+
+const pinnedKeys: WindowKey[] = ["my-space", "personalize", "ai-center", "create-app"];
+
 export function ActivityShelf({ activeWindows, onOpen, onCommand }: ActivityShelfProps) {
-  const items: Array<{
-    key?: WindowKey;
-    label: string;
-    sublabel?: string;
-    icon: ComponentType<{ size?: number }>;
-    action?: () => void;
-  }> = [
-    { key: "my-space", label: "My Space", sublabel: "Explorer", icon: Folder },
-    { key: "personalize", label: "Personalize", sublabel: "Settings", icon: Settings },
-    { key: "ai-center", label: "AI Center", sublabel: "Models", icon: Bot },
-    { key: "create-app", label: "Builder", sublabel: "Nova App", icon: PanelsTopLeft },
-  ];
+  const runningKeys = activeWindows.filter((key) => !pinnedKeys.includes(key));
 
   return (
     <div className="shelf" aria-label="Activity Shelf">
@@ -32,15 +51,16 @@ export function ActivityShelf({ activeWindows, onOpen, onCommand }: ActivityShel
           <Sparkles size={20} />
         </span>
       </button>
-      {items.map((item) => {
+      {pinnedKeys.map((key) => {
+        const item = shelfRegistry[key];
         const Icon = item.icon;
-        const active = item.key ? activeWindows.includes(item.key) : false;
+        const active = activeWindows.includes(key);
         return (
           <button
             key={item.label}
             className={cn("shelf-button", active && "active")}
             type="button"
-            onClick={item.action ?? (() => item.key && onOpen(item.key))}
+            onClick={() => onOpen(key)}
           >
             <span className="shelf-icon">
               <Icon size={20} />
@@ -48,6 +68,22 @@ export function ActivityShelf({ activeWindows, onOpen, onCommand }: ActivityShel
             <span className="shelf-text">
               <strong>{item.label}</strong>
               {item.sublabel ? <span>{item.sublabel}</span> : null}
+            </span>
+          </button>
+        );
+      })}
+      {runningKeys.length ? <span className="shelf-divider" /> : null}
+      {runningKeys.map((key) => {
+        const item = shelfRegistry[key];
+        const Icon = item.icon;
+        return (
+          <button key={key} className="shelf-button active running" type="button" onClick={() => onOpen(key)}>
+            <span className="shelf-icon">
+              <Icon size={20} />
+            </span>
+            <span className="shelf-text">
+              <strong>{item.label}</strong>
+              <span>{item.sublabel}</span>
             </span>
           </button>
         );

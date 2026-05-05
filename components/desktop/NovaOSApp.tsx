@@ -212,6 +212,8 @@ export function NovaOSApp() {
       updateSystem((current) => ({
         ...current,
         activeFileSection: "Recent",
+        activeFileName: "Untitled_Nova_App.nova",
+        fileInsight: "This new Nova document is ready for app planning, notes, or a generated workflow.",
         files: [
           ["Untitled_Nova_App.nova", "Nova Document", "Just now", "16 KB"],
           ...current.files.filter((file) => file[0] !== "Untitled_Nova_App.nova"),
@@ -223,6 +225,67 @@ export function NovaOSApp() {
     },
     setFileSection(section: string) {
       updateSystem((current) => ({ ...current, activeFileSection: section }));
+    },
+    selectFile(fileName: string) {
+      updateSystem((current) => {
+        const file = current.files.find((item) => item[0] === fileName);
+        return {
+          ...current,
+          activeFileName: fileName,
+          fileInsight: file
+            ? `${file[0]} is selected. Nova can summarize it, pin it to ${current.activeSpace}, or send a guarded share request.`
+            : current.fileInsight,
+          activityLog: file ? pushActivity(current, "File selected", `${file[0]} is now active in My Space.`) : current.activityLog,
+        };
+      });
+    },
+    summarizeFile(fileName: string) {
+      updateSystem((current) => {
+        const file = current.files.find((item) => item[0] === fileName);
+        return {
+          ...current,
+          activeFileName: fileName,
+          fileInsight: file
+            ? `Summary ready: ${file[0]} contains useful context for ${current.activeSpace}. Key actions were staged in Nova Hub.`
+            : current.fileInsight,
+          hubActions: current.hubActions + 1,
+          hubSignal: file ? `${file[0]} was summarized and added to the active mission context.` : current.hubSignal,
+          activityLog: file
+            ? pushActivity(current, "File summarized", `${file[0]} was summarized into ${current.activeSpace}.`, "system")
+            : current.activityLog,
+        };
+      });
+    },
+    shareFile(fileName: string) {
+      updateSystem((current) => {
+        const file = current.files.find((item) => item[0] === fileName);
+        return {
+          ...current,
+          activeFileName: fileName,
+          guardNote: file ? `Share request queued for ${file[0]}. Nova Guard will ask before sending anything out.` : current.guardNote,
+          fileInsight: file ? `${file[0]} is waiting on Guard approval before any external share.` : current.fileInsight,
+          hubActions: current.hubActions + 1,
+          hubSignal: file ? `Share approval queued for ${file[0]}.` : current.hubSignal,
+          activityLog: file
+            ? pushActivity(current, "Guard share queued", `${file[0]} needs approval before leaving Nova OS.`, "guard")
+            : current.activityLog,
+        };
+      });
+    },
+    pinFileToSpace(fileName: string) {
+      updateSystem((current) => {
+        const file = current.files.find((item) => item[0] === fileName);
+        return {
+          ...current,
+          activeFileName: fileName,
+          fileInsight: file ? `${file[0]} is pinned to ${current.activeSpace} and will travel with that mission.` : current.fileInsight,
+          hubActions: current.hubActions + 1,
+          hubSignal: file ? `${file[0]} was pinned to ${current.activeSpace}.` : current.hubSignal,
+          activityLog: file
+            ? pushActivity(current, "File pinned", `${file[0]} was pinned to ${current.activeSpace}.`, "success")
+            : current.activityLog,
+        };
+      });
     },
     setTheme(theme: Partial<NovaTheme>) {
       updateSystem((current) => ({

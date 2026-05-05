@@ -35,6 +35,8 @@ export type NovaSystemState = {
   openWindows: WindowKey[];
   files: NovaFile[];
   activeFileSection: string;
+  activeFileName: string;
+  fileInsight: string;
   aiProviders: AiProvider[];
   selectedProvider: string;
   guardPermissions: GuardPermission[];
@@ -54,6 +56,10 @@ export type NovaSystemState = {
 export type NovaSystemActions = {
   addFile: () => void;
   setFileSection: (section: string) => void;
+  selectFile: (fileName: string) => void;
+  summarizeFile: (fileName: string) => void;
+  shareFile: (fileName: string) => void;
+  pinFileToSpace: (fileName: string) => void;
   setTheme: (theme: Partial<NovaTheme>) => void;
   selectProvider: (provider: string) => void;
   toggleSelectedProvider: () => void;
@@ -74,6 +80,8 @@ export const defaultNovaSystemState: NovaSystemState = {
   openWindows: initialWindows,
   files: recentFiles,
   activeFileSection: "My Space",
+  activeFileName: recentFiles[0][0],
+  fileInsight: "Nova is ready to preview, summarize, or route this file into the active space.",
   aiProviders,
   selectedProvider: "Codex",
   guardPermissions,

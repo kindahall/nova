@@ -1,8 +1,27 @@
 "use client";
 
-import { Clock, Database, Folder, Grid3X3, HardDrive, Home, Plus, Search, Share2, Star, Tags } from "lucide-react";
+import {
+  Clock,
+  ClipboardCheck,
+  Database,
+  FileText,
+  Folder,
+  Grid3X3,
+  HardDrive,
+  Home,
+  Image as ImageIcon,
+  Music2,
+  Pin,
+  Plus,
+  Search,
+  Share2,
+  ShieldCheck,
+  Sparkles,
+  Star,
+  Tags,
+} from "lucide-react";
 import { useMemo, useState } from "react";
-import { folders } from "@/data/nova";
+import { folders, type NovaFile } from "@/data/nova";
 import { WindowFrame } from "@/components/desktop/WindowFrame";
 import { cn } from "@/lib/utils";
 import type { NovaSystemActions, NovaSystemState } from "@/lib/nova-system";
@@ -24,6 +43,38 @@ const sidebarItems = [
   { label: "Data Hub", icon: Database },
 ];
 
+function fileIcon(file: NovaFile) {
+  if (file[1].includes("PNG")) {
+    return <ImageIcon size={13} />;
+  }
+
+  if (file[1].includes("MP3")) {
+    return <Music2 size={13} />;
+  }
+
+  return <FileText size={13} />;
+}
+
+function fileContext(file: NovaFile) {
+  if (file[1].includes("PDF")) {
+    return "Presentation and reference material ready for extraction.";
+  }
+
+  if (file[1].includes("PNG")) {
+    return "Visual asset indexed for moodboards, decks, and product surfaces.";
+  }
+
+  if (file[1].includes("MP3")) {
+    return "Audio draft ready for transcription, notes, or publishing prep.";
+  }
+
+  if (file[1].includes("Text")) {
+    return "Plain notes ready for cleanup, summary, and next-action capture.";
+  }
+
+  return "Nova document ready for planning, generation, and workspace context.";
+}
+
 export function MySpaceWindow({ system, systemActions, onClose, onFocus }: MySpaceWindowProps) {
   const [query, setQuery] = useState("");
   const visibleFiles = useMemo(() => {
@@ -34,6 +85,8 @@ export function MySpaceWindow({ system, systemActions, onClose, onFocus }: MySpa
 
     return system.files.filter((file) => file.join(" ").toLowerCase().includes(normalizedQuery));
   }, [system.files, query]);
+  const selectedFile =
+    visibleFiles.find((file) => file[0] === system.activeFileName) ?? visibleFiles[0] ?? system.files[0];
 
   function addFile() {
     systemActions.addFile();
@@ -92,33 +145,95 @@ export function MySpaceWindow({ system, systemActions, onClose, onFocus }: MySpa
             </div>
           </div>
 
-          <h3 className="section-title">Folders</h3>
-          <div className="folder-grid">
-            {folders.map((folder) => (
-              <div className="folder-card" key={folder.name}>
-                <div className="folder-icon" />
-                <strong>{folder.name}</strong>
-                <span>{folder.count}</span>
+          <div className="file-workspace">
+            <section className="file-browser" aria-label="File browser">
+              <h3 className="section-title">Folders</h3>
+              <div className="folder-grid">
+                {folders.map((folder) => (
+                  <button className="folder-card" key={folder.name} type="button" onClick={() => systemActions.setFileSection(folder.name)}>
+                    <div className="folder-icon" />
+                    <strong>{folder.name}</strong>
+                    <span>{folder.count}</span>
+                  </button>
+                ))}
               </div>
-            ))}
-          </div>
 
-          <h3 className="section-title">Recent files</h3>
-          <div className="file-list">
-            {visibleFiles.map((file) => (
-              <div className="file-row" key={file[0]}>
-                <span className="file-name">
-                  <span className="file-badge">
-                    <Folder size={12} />
-                  </span>
-                  {file[0]}
-                </span>
-                <span>{file[1]}</span>
-                <span>{file[2]}</span>
-                <span>{file[3]}</span>
+              <h3 className="section-title">Recent files</h3>
+              <div className="file-list">
+                {visibleFiles.map((file) => {
+                  const selected = selectedFile?.[0] === file[0];
+                  return (
+                    <button
+                      className={cn("file-row", selected && "selected")}
+                      key={file[0]}
+                      type="button"
+                      onClick={() => systemActions.selectFile(file[0])}
+                      aria-label={`Preview ${file[0]}`}
+                      aria-pressed={selected}
+                    >
+                      <span className="file-name">
+                        <span className="file-badge">{fileIcon(file)}</span>
+                        {file[0]}
+                      </span>
+                      <span>{file[1]}</span>
+                      <span>{file[2]}</span>
+                      <span>{file[3]}</span>
+                    </button>
+                  );
+                })}
+                {visibleFiles.length === 0 ? <div className="file-row empty">No files match this search.</div> : null}
               </div>
-            ))}
-            {visibleFiles.length === 0 ? <div className="file-row">No files match this search.</div> : null}
+            </section>
+
+            {selectedFile ? (
+              <aside className="file-preview-panel" aria-label="File preview">
+                <div className="preview-file-orb">{fileIcon(selectedFile)}</div>
+                <span className="preview-state">
+                  <ClipboardCheck size={13} />
+                  Active file
+                </span>
+                <h3>{selectedFile[0]}</h3>
+                <p>{fileContext(selectedFile)}</p>
+
+                <div className="preview-meta-grid">
+                  <span>Type<strong>{selectedFile[1]}</strong></span>
+                  <span>Modified<strong>{selectedFile[2]}</strong></span>
+                  <span>Size<strong>{selectedFile[3]}</strong></span>
+                  <span>Space<strong>{system.activeSpace}</strong></span>
+                </div>
+
+                <div className="file-insight-card">
+                  <Sparkles size={16} />
+                  <div>
+                    <strong>Nova insight</strong>
+                    <p>{system.fileInsight}</p>
+                  </div>
+                </div>
+
+                <div className="preview-actions">
+                  <button className="primary-button" type="button" onClick={() => systemActions.summarizeFile(selectedFile[0])}>
+                    <Sparkles size={15} />
+                    Summarize
+                  </button>
+                  <button className="compact-button" type="button" onClick={() => systemActions.pinFileToSpace(selectedFile[0])}>
+                    <Pin size={14} />
+                    Pin
+                  </button>
+                  <button className="compact-button" type="button" onClick={() => systemActions.shareFile(selectedFile[0])}>
+                    <ShieldCheck size={14} />
+                    Guard share
+                  </button>
+                </div>
+
+                <div className="mini-route">
+                  <span>
+                    <Folder size={13} />
+                    {system.activeFileSection}
+                  </span>
+                  <span>{system.selectedProvider}</span>
+                </div>
+              </aside>
+            ) : null}
           </div>
         </main>
       </div>

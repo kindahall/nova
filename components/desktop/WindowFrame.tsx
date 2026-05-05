@@ -50,7 +50,6 @@ export function WindowFrame({
       dragListener={false}
       dragMomentum={false}
       whileDrag={{ scale: 1.01 }}
-      layout
     >
       <header className="window-header" onPointerDown={startDrag}>
         <div className="window-title">
