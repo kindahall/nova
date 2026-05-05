@@ -18,6 +18,7 @@ import { PersonalizeWindow } from "@/components/windows/PersonalizeWindow";
 import { SpacesWindow } from "@/components/windows/SpacesWindow";
 import { DesktopIcons } from "@/components/desktop/DesktopIcons";
 import { MissionControlOverlay } from "@/components/desktop/MissionControlOverlay";
+import { NotificationStack } from "@/components/desktop/NotificationStack";
 import { SystemStatus } from "@/components/desktop/SystemStatus";
 import { NovaRail } from "@/components/rail/NovaRail";
 import type { NovaSystemActions, NovaSystemState } from "@/lib/nova-system";
@@ -179,6 +180,7 @@ export function DesktopShell({
       <NovaRail activeWindows={activeWindows} onOpen={onOpen} onCommand={onOpenCommand} />
       <TopCommandBar onOpen={onOpenCommand} />
       <SystemStatus system={system} onOpenActivity={() => onOpen("activity-center")} />
+      <NotificationStack activityLog={system.activityLog} onOpenActivity={() => onOpen("activity-center")} />
       <DesktopIcons onOpen={onOpen} />
 
       <section className="window-layer" aria-label="Nova desktop windows">

@@ -345,6 +345,78 @@ button {
   font-size: 11px;
 }
 
+.notification-stack {
+  position: fixed;
+  z-index: 23;
+  right: 30px;
+  bottom: 124px;
+  display: grid;
+  gap: 10px;
+  width: min(340px, calc(100vw - 60px));
+  pointer-events: none;
+}
+
+.notification-toast {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 64px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 18px;
+  color: white;
+  background: rgba(18, 27, 72, 0.72);
+  box-shadow: 0 16px 44px rgba(5, 8, 28, 0.28);
+  backdrop-filter: blur(20px);
+  pointer-events: auto;
+  text-align: left;
+}
+
+.notification-toast:hover {
+  transform: translateY(-2px);
+  background: rgba(28, 39, 94, 0.78);
+}
+
+.notification-toast.success {
+  border-color: rgba(94, 216, 255, 0.42);
+}
+
+.notification-toast.guard {
+  border-color: rgba(255, 191, 143, 0.42);
+}
+
+.notification-icon {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.notification-toast strong,
+.notification-toast span span {
+  display: block;
+}
+
+.notification-toast strong {
+  font-size: 12px;
+}
+
+.notification-toast span span {
+  margin-top: 2px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.notification-toast time {
+  align-self: start;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 10px;
+}
+
 .desktop-icons {
   position: fixed;
   z-index: 4;
@@ -2484,6 +2556,7 @@ button {
   }
 
   .system-status,
+  .notification-stack,
   .desktop-icons,
   .shelf {
     display: none;
