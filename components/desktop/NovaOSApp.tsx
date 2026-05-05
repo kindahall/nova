@@ -111,6 +111,7 @@ export function NovaOSApp() {
   const onboardingComplete = useSyncExternalStore(subscribeToOnboarding, getOnboardingSnapshot, () => false);
   const system = useSyncExternalStore(subscribeToSystem, getSystemSnapshot, () => defaultNovaSystemState);
   const [commandOpen, setCommandOpen] = useState(false);
+  const [switcherOpen, setSwitcherOpen] = useState(false);
   const rootStyle = {
     "--nova-accent": system.theme.accent,
     "--nova-glass-alpha": `${0.52 + (system.theme.transparency / 100) * 0.36}`,
@@ -149,12 +150,21 @@ export function NovaOSApp() {
 
       if (modifier && event.key.toLowerCase() === "k") {
         event.preventDefault();
+        setSwitcherOpen(false);
         setCommandOpen(true);
+        return;
+      }
+
+      if (modifier && event.key === "Tab") {
+        event.preventDefault();
+        setCommandOpen(false);
+        setSwitcherOpen(true);
         return;
       }
 
       if (event.key === "Escape") {
         setCommandOpen(false);
+        setSwitcherOpen(false);
         return;
       }
 
@@ -192,11 +202,13 @@ export function NovaOSApp() {
 
   function openCreateApp() {
     setCommandOpen(false);
+    setSwitcherOpen(false);
     openWindow("create-app");
   }
 
   function openGeneratedCrm() {
     setCommandOpen(false);
+    setSwitcherOpen(false);
     updateSystem((current) => {
       const withoutBuilder = current.openWindows.filter((item) => item !== "create-app" && item !== "crm-app");
       return {
@@ -414,10 +426,16 @@ export function NovaOSApp() {
           systemActions={systemActions}
           activeWindows={system.openWindows}
           commandOpen={commandOpen}
+          switcherOpen={switcherOpen}
           onOpen={openWindow}
           onClose={closeWindow}
           onOpenCommand={() => setCommandOpen(true)}
           onCloseCommand={() => setCommandOpen(false)}
+          onOpenSwitcher={() => {
+            setCommandOpen(false);
+            setSwitcherOpen(true);
+          }}
+          onCloseSwitcher={() => setSwitcherOpen(false)}
           onCreateApp={openCreateApp}
           onGenerated={openGeneratedCrm}
         />

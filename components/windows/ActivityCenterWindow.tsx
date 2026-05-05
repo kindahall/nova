@@ -16,6 +16,7 @@ type ActivityCenterWindowProps = {
 
 const shortcuts = [
   ["Ctrl/Cmd K", "Nova Command"],
+  ["Ctrl/Cmd Tab", "Mission Control"],
   ["Ctrl/Cmd W", "Close top window"],
   ["Ctrl/Cmd 1", "Nova Hub"],
   ["Ctrl/Cmd 2", "My Space"],

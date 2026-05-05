@@ -632,6 +632,144 @@ button {
   background: rgba(255, 255, 255, 0.25);
 }
 
+.mission-control-backdrop {
+  position: fixed;
+  z-index: 32;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 34px;
+  background: rgba(5, 9, 32, 0.34);
+  backdrop-filter: blur(16px) saturate(1.12);
+}
+
+.mission-control-panel {
+  width: min(940px, calc(100vw - 72px));
+  max-height: calc(100svh - 120px);
+  overflow: auto;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  border-radius: 28px;
+  color: var(--pearl);
+  background: rgba(16, 25, 68, 0.62);
+  box-shadow: 0 30px 90px rgba(5, 8, 28, 0.42);
+}
+
+.mission-control-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.mission-control-header span {
+  color: rgba(255, 255, 255, 0.64);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.mission-control-header h2 {
+  margin: 4px 0 0;
+  font-size: 28px;
+}
+
+.mission-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.mission-card {
+  min-width: 0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.mission-card:hover,
+.mission-card.focused {
+  transform: translateY(-3px);
+  border-color: rgba(94, 216, 255, 0.46);
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.mission-open {
+  width: 100%;
+  min-height: 116px;
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  color: inherit;
+  background: transparent;
+  text-align: left;
+}
+
+.mission-icon {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 16px;
+  color: white;
+  background: linear-gradient(135deg, #5ad5d6, #7467ff);
+}
+
+.mission-open strong,
+.mission-open span span {
+  display: block;
+}
+
+.mission-open strong {
+  margin-bottom: 6px;
+  font-size: 15px;
+}
+
+.mission-open span span {
+  color: rgba(255, 255, 255, 0.66);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.mission-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.66);
+  font-size: 11px;
+}
+
+.mini-close {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  color: white;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.mini-close:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.mission-empty {
+  grid-column: 1 / -1;
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  min-height: 180px;
+  color: rgba(255, 255, 255, 0.72);
+  text-align: center;
+}
+
 .split-window {
   display: grid;
   grid-template-columns: 150px 1fr;
@@ -2413,7 +2551,8 @@ button {
   .folder-grid,
   .cards-grid,
   .crm-kpis,
-  .suggestion-grid {
+  .suggestion-grid,
+  .mission-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -2447,6 +2586,7 @@ button {
   .cards-grid,
   .crm-kpis,
   .suggestion-grid,
+  .mission-grid,
   .vibe-grid {
     grid-template-columns: 1fr;
   }

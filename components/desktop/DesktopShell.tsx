@@ -17,6 +17,7 @@ import { OfflineModePanel } from "@/components/windows/OfflineModePanel";
 import { PersonalizeWindow } from "@/components/windows/PersonalizeWindow";
 import { SpacesWindow } from "@/components/windows/SpacesWindow";
 import { DesktopIcons } from "@/components/desktop/DesktopIcons";
+import { MissionControlOverlay } from "@/components/desktop/MissionControlOverlay";
 import { SystemStatus } from "@/components/desktop/SystemStatus";
 import { NovaRail } from "@/components/rail/NovaRail";
 import type { NovaSystemActions, NovaSystemState } from "@/lib/nova-system";
@@ -26,10 +27,13 @@ type DesktopShellProps = {
   systemActions: NovaSystemActions;
   activeWindows: WindowKey[];
   commandOpen: boolean;
+  switcherOpen: boolean;
   onOpen: (window: WindowKey) => void;
   onClose: (window: WindowKey) => void;
   onOpenCommand: () => void;
   onCloseCommand: () => void;
+  onOpenSwitcher: () => void;
+  onCloseSwitcher: () => void;
   onCreateApp: () => void;
   onGenerated: () => void;
 };
@@ -39,10 +43,13 @@ export function DesktopShell({
   systemActions,
   activeWindows,
   commandOpen,
+  switcherOpen,
   onOpen,
   onClose,
   onOpenCommand,
   onCloseCommand,
+  onOpenSwitcher,
+  onCloseSwitcher,
   onCreateApp,
   onGenerated,
 }: DesktopShellProps) {
@@ -189,7 +196,16 @@ export function DesktopShell({
         </AnimatePresence>
       </section>
 
-      <ActivityShelf activeWindows={activeWindows} onOpen={onOpen} onCommand={onOpenCommand} />
+      {switcherOpen ? (
+        <MissionControlOverlay
+          activeWindows={activeWindows}
+          onOpenWindow={onOpen}
+          onCloseWindow={onClose}
+          onDismiss={onCloseSwitcher}
+        />
+      ) : null}
+
+      <ActivityShelf activeWindows={activeWindows} onOpen={onOpen} onCommand={onOpenCommand} onSwitcher={onOpenSwitcher} />
     </main>
   );
 }

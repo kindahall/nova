@@ -23,6 +23,7 @@ type ActivityShelfProps = {
   activeWindows: WindowKey[];
   onOpen: (window: WindowKey) => void;
   onCommand: () => void;
+  onSwitcher: () => void;
 };
 
 const shelfRegistry: Record<WindowKey, { label: string; sublabel: string; icon: ComponentType<{ size?: number }> }> = {
@@ -41,7 +42,7 @@ const shelfRegistry: Record<WindowKey, { label: string; sublabel: string; icon: 
 
 const pinnedKeys: WindowKey[] = ["my-space", "personalize", "ai-center", "create-app"];
 
-export function ActivityShelf({ activeWindows, onOpen, onCommand }: ActivityShelfProps) {
+export function ActivityShelf({ activeWindows, onOpen, onCommand, onSwitcher }: ActivityShelfProps) {
   const runningKeys = activeWindows.filter((key) => !pinnedKeys.includes(key));
 
   return (
@@ -104,7 +105,7 @@ export function ActivityShelf({ activeWindows, onOpen, onCommand }: ActivityShel
           <Plus size={20} />
         </span>
       </button>
-      <button className="shelf-button icon-only" type="button" onClick={() => onOpen("spaces")} aria-label="Open Spaces">
+      <button className="shelf-button icon-only" type="button" onClick={onSwitcher} aria-label="Mission Control">
         <span className="shelf-icon">
           <Grid3X3 size={20} />
         </span>
