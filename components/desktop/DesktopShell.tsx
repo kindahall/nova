@@ -7,6 +7,7 @@ import { GeneratedCrmAppWindow } from "@/components/apps/GeneratedCrmAppWindow";
 import { NovaCommandWindow } from "@/components/command/NovaCommandWindow";
 import { TopCommandBar } from "@/components/command/TopCommandBar";
 import { ActivityShelf } from "@/components/shelf/ActivityShelf";
+import { ActivityCenterWindow } from "@/components/windows/ActivityCenterWindow";
 import { AiCenterWindow } from "@/components/windows/AiCenterWindow";
 import { MySpaceWindow } from "@/components/windows/MySpaceWindow";
 import { NovaGuardWindow } from "@/components/windows/NovaGuardWindow";
@@ -129,6 +130,17 @@ export function DesktopShell({
             onFocus={() => onOpen(windowKey)}
           />
         );
+      case "activity-center":
+        return (
+          <ActivityCenterWindow
+            key={windowKey}
+            system={system}
+            systemActions={systemActions}
+            onOpenWindow={onOpen}
+            onClose={() => onClose(windowKey)}
+            onFocus={() => onOpen(windowKey)}
+          />
+        );
       case "create-app":
         return (
           <CreateNovaAppWindow
@@ -159,7 +171,7 @@ export function DesktopShell({
       <div className="star-field" />
       <NovaRail activeWindows={activeWindows} onOpen={onOpen} onCommand={onOpenCommand} />
       <TopCommandBar onOpen={onOpenCommand} />
-      <SystemStatus system={system} />
+      <SystemStatus system={system} onOpenActivity={() => onOpen("activity-center")} />
       <DesktopIcons onOpen={onOpen} />
 
       <section className="window-layer" aria-label="Nova desktop windows">

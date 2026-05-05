@@ -7,6 +7,7 @@ export type WindowKey =
   | "nova-store"
   | "spaces"
   | "offline-mode"
+  | "activity-center"
   | "create-app"
   | "crm-app";
 

@@ -76,6 +76,13 @@ const commandTargets: Array<{ key: WindowKey; keywords: string[]; title: string;
     body: "Local work, queued sync, and protected drafts are visible.",
     actionLabel: "Focus Offline Mode",
   },
+  {
+    key: "activity-center",
+    keywords: ["activity", "notification", "history", "shortcut", "keyboard", "log"],
+    title: "Activity Center opened",
+    body: "System memory, notifications, and keyboard controls are ready.",
+    actionLabel: "Focus Activity",
+  },
 ];
 
 export function NovaCommandWindow({ onClose, onCreateApp, onOpenGuard, onOpenWindow }: NovaCommandWindowProps) {

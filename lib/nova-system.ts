@@ -4,6 +4,7 @@ import {
   recentFiles,
   spaces,
   storeItems,
+  type WindowKey,
   type AiProvider,
   type GuardPermission,
   type NovaFile,
@@ -22,7 +23,16 @@ export type NovaTheme = {
   transparency: number;
 };
 
+export type NovaActivityEntry = {
+  id: string;
+  time: string;
+  title: string;
+  body: string;
+  tone: "info" | "success" | "guard" | "system";
+};
+
 export type NovaSystemState = {
+  openWindows: WindowKey[];
   files: NovaFile[];
   activeFileSection: string;
   aiProviders: AiProvider[];
@@ -38,6 +48,7 @@ export type NovaSystemState = {
   hubActions: number;
   hubSignal: string;
   crmActiveView: string;
+  activityLog: NovaActivityEntry[];
 };
 
 export type NovaSystemActions = {
@@ -57,7 +68,10 @@ export type NovaSystemActions = {
   resetSystem: () => void;
 };
 
+const initialWindows: WindowKey[] = ["my-space", "personalize"];
+
 export const defaultNovaSystemState: NovaSystemState = {
+  openWindows: initialWindows,
   files: recentFiles,
   activeFileSection: "My Space",
   aiProviders,
@@ -78,6 +92,29 @@ export const defaultNovaSystemState: NovaSystemState = {
   hubActions: 12,
   hubSignal: "System is calm. Builder Studio is still the active mission.",
   crmActiveView: "Dashboard",
+  activityLog: [
+    {
+      id: "boot-ready",
+      time: "09:42",
+      title: "Nova desktop ready",
+      body: "Builder Studio, My Space, Guard, and AI routing are available.",
+      tone: "system",
+    },
+    {
+      id: "guard-default",
+      time: "09:39",
+      title: "Nova Guard active",
+      body: "Sensitive actions require approval and remain visible in the ledger.",
+      tone: "guard",
+    },
+    {
+      id: "store-founder",
+      time: "09:36",
+      title: "Founder Pack installed",
+      body: "CRM, invoices, pitch room, and starter automations are pinned.",
+      tone: "success",
+    },
+  ],
 };
 
 export function mergeNovaSystemState(value: unknown): NovaSystemState {
@@ -95,9 +132,11 @@ export function mergeNovaSystemState(value: unknown): NovaSystemState {
       ...(state.theme ?? {}),
     },
     files: state.files?.length ? state.files : defaultNovaSystemState.files,
+    openWindows: state.openWindows?.length ? state.openWindows : defaultNovaSystemState.openWindows,
     aiProviders: state.aiProviders?.length ? state.aiProviders : defaultNovaSystemState.aiProviders,
     guardPermissions: state.guardPermissions?.length ? state.guardPermissions : defaultNovaSystemState.guardPermissions,
     installedPacks: state.installedPacks?.length ? state.installedPacks : defaultNovaSystemState.installedPacks,
     spaces: state.spaces?.length ? state.spaces : defaultNovaSystemState.spaces,
+    activityLog: state.activityLog?.length ? state.activityLog : defaultNovaSystemState.activityLog,
   };
 }

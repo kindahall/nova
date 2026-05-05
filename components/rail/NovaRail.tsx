@@ -2,6 +2,7 @@
 
 import {
   Boxes,
+  Bell,
   Folder,
   Home,
   Mail,
@@ -30,6 +31,7 @@ const railItems: Array<{ key: WindowKey; label: string; icon: ComponentType<{ si
   { key: "ai-center", label: "AI Center", icon: Workflow },
   { key: "nova-store", label: "Nova Store", icon: Store },
   { key: "nova-guard", label: "Nova Guard", icon: ShieldCheck },
+  { key: "activity-center", label: "Activity Center", icon: Bell },
 ];
 
 export function NovaRail({ activeWindows, onOpen, onCommand }: NovaRailProps) {

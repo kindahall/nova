@@ -1,7 +1,7 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import type { WindowKey } from "@/data/nova";
 import { DesktopShell } from "@/components/desktop/DesktopShell";
 import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
@@ -17,7 +17,6 @@ import {
 
 const STORAGE_KEY = "nova-os-onboarding-complete";
 const SYSTEM_STORAGE_KEY = "nova-os-system-state";
-const initialWindows: WindowKey[] = ["my-space", "personalize"];
 const STORAGE_EVENT = "nova-os-onboarding-changed";
 const SYSTEM_STORAGE_EVENT = "nova-os-system-changed";
 let cachedSystemRaw = "";
@@ -89,37 +88,107 @@ function writeSystemSnapshot(system: NovaSystemState) {
   window.dispatchEvent(new Event(SYSTEM_STORAGE_EVENT));
 }
 
+function createActivity(title: string, body: string, tone: NovaSystemState["activityLog"][number]["tone"] = "info") {
+  return {
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    time: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
+    title,
+    body,
+    tone,
+  };
+}
+
+function pushActivity(
+  current: NovaSystemState,
+  title: string,
+  body: string,
+  tone: NovaSystemState["activityLog"][number]["tone"] = "info"
+) {
+  return [createActivity(title, body, tone), ...current.activityLog].slice(0, 18);
+}
+
 export function NovaOSApp() {
   const onboardingComplete = useSyncExternalStore(subscribeToOnboarding, getOnboardingSnapshot, () => false);
   const system = useSyncExternalStore(subscribeToSystem, getSystemSnapshot, () => defaultNovaSystemState);
-  const [activeWindows, setActiveWindows] = useState<WindowKey[]>(initialWindows);
   const [commandOpen, setCommandOpen] = useState(false);
   const rootStyle = {
     "--nova-accent": system.theme.accent,
     "--nova-glass-alpha": `${0.52 + (system.theme.transparency / 100) * 0.36}`,
   } as CSSProperties;
 
-  function updateSystem(updater: (current: NovaSystemState) => NovaSystemState) {
+  const updateSystem = useCallback((updater: (current: NovaSystemState) => NovaSystemState) => {
     writeSystemSnapshot(updater(getSystemSnapshot()));
-  }
+  }, []);
 
   function completeOnboarding() {
     window.localStorage.setItem(STORAGE_KEY, "true");
     window.dispatchEvent(new Event(STORAGE_EVENT));
     writeSystemSnapshot(mergeNovaSystemState(getSystemSnapshot()));
-    setActiveWindows(initialWindows);
   }
 
-  function openWindow(windowKey: WindowKey) {
-    setActiveWindows((current) => {
-      const next = current.filter((item) => item !== windowKey);
-      return [...next, windowKey];
+  const openWindow = useCallback((windowKey: WindowKey) => {
+    updateSystem((current) => {
+      const next = current.openWindows.filter((item) => item !== windowKey);
+      return {
+        ...current,
+        openWindows: [...next, windowKey],
+      };
     });
-  }
+  }, [updateSystem]);
 
-  function closeWindow(windowKey: WindowKey) {
-    setActiveWindows((current) => current.filter((item) => item !== windowKey));
-  }
+  const closeWindow = useCallback((windowKey: WindowKey) => {
+    updateSystem((current) => ({
+      ...current,
+      openWindows: current.openWindows.filter((item) => item !== windowKey),
+    }));
+  }, [updateSystem]);
+
+  useEffect(() => {
+    function handleKeyboard(event: KeyboardEvent) {
+      const modifier = event.metaKey || event.ctrlKey;
+
+      if (modifier && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setCommandOpen(true);
+        return;
+      }
+
+      if (event.key === "Escape") {
+        setCommandOpen(false);
+        return;
+      }
+
+      if (modifier && event.key.toLowerCase() === "w") {
+        event.preventDefault();
+        const topWindow = getSystemSnapshot().openWindows.at(-1);
+        if (topWindow) {
+          closeWindow(topWindow);
+        }
+        return;
+      }
+
+      if (modifier && /^[1-8]$/.test(event.key)) {
+        event.preventDefault();
+        const shortcuts: WindowKey[] = [
+          "nova-hub",
+          "my-space",
+          "spaces",
+          "ai-center",
+          "nova-store",
+          "nova-guard",
+          "activity-center",
+          "personalize",
+        ];
+        const target = shortcuts[Number(event.key) - 1];
+        if (target) {
+          openWindow(target);
+        }
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyboard);
+    return () => window.removeEventListener("keydown", handleKeyboard);
+  }, [closeWindow, openWindow]);
 
   function openCreateApp() {
     setCommandOpen(false);
@@ -128,9 +197,13 @@ export function NovaOSApp() {
 
   function openGeneratedCrm() {
     setCommandOpen(false);
-    setActiveWindows((current) => {
-      const withoutBuilder = current.filter((item) => item !== "create-app" && item !== "crm-app");
-      return [...withoutBuilder, "crm-app"];
+    updateSystem((current) => {
+      const withoutBuilder = current.openWindows.filter((item) => item !== "create-app" && item !== "crm-app");
+      return {
+        ...current,
+        openWindows: [...withoutBuilder, "crm-app"],
+        activityLog: pushActivity(current, "ClientFlow opened", "The generated CRM Nova App is now running.", "success"),
+      };
     });
   }
 
@@ -145,6 +218,7 @@ export function NovaOSApp() {
         ],
         hubActions: current.hubActions + 1,
         hubSignal: "A new local Nova document was added to My Space.",
+        activityLog: pushActivity(current, "File created", "Untitled_Nova_App.nova was added to My Space.", "success"),
       }));
     },
     setFileSection(section: string) {
@@ -155,6 +229,7 @@ export function NovaOSApp() {
         ...current,
         theme: { ...current.theme, ...theme },
         hubSignal: `Personalization updated: ${theme.vibe ?? theme.mode ?? "accent changed"}.`,
+        activityLog: pushActivity(current, "Personalization updated", `Nova theme changed to ${theme.vibe ?? theme.mode ?? "a new accent"}.`),
       }));
     },
     selectProvider(provider: string) {
@@ -174,6 +249,14 @@ export function NovaOSApp() {
           hubSignal: selectedProvider
             ? `${selectedProvider.name} was ${selectedProvider.state === "Disconnected" ? "connected" : "disconnected"}.`
             : current.hubSignal,
+          activityLog: selectedProvider
+            ? pushActivity(
+                current,
+                "AI routing changed",
+                `${selectedProvider.name} was ${selectedProvider.state === "Disconnected" ? "connected" : "disconnected"}.`,
+                "system"
+              )
+            : current.activityLog,
         };
       });
     },
@@ -189,6 +272,9 @@ export function NovaOSApp() {
           guardNote: permission ? `${permission.name} is now ${nextEnabled ? "enabled" : "limited"}.` : current.guardNote,
           hubActions: current.hubActions + 1,
           hubSignal: permission ? `Nova Guard changed: ${permission.name} is ${nextEnabled ? "enabled" : "limited"}.` : current.hubSignal,
+          activityLog: permission
+            ? pushActivity(current, "Guard permission changed", `${permission.name} is now ${nextEnabled ? "enabled" : "limited"}.`, "guard")
+            : current.activityLog,
         };
       });
     },
@@ -199,6 +285,7 @@ export function NovaOSApp() {
         storeActivity: `${pack} installed and pinned to ${current.activeSpace}.`,
         hubActions: current.hubActions + 1,
         hubSignal: `${pack} was installed into ${current.activeSpace}.`,
+        activityLog: pushActivity(current, "Pack installed", `${pack} was pinned to ${current.activeSpace}.`, "success"),
       }));
     },
     openPackPreview(pack: string) {
@@ -213,11 +300,12 @@ export function NovaOSApp() {
         const spaces = current.spaces.some((space) => space[0] === newSpace[0]) ? current.spaces : [...current.spaces, newSpace];
         return {
           ...current,
-          spaces,
-          activeSpace: newSpace[0],
-          hubActions: current.hubActions + 1,
-          hubSignal: "Launch Lab was drafted with starter apps, agents, and guard rules.",
-        };
+        spaces,
+        activeSpace: newSpace[0],
+        hubActions: current.hubActions + 1,
+        hubSignal: "Launch Lab was drafted with starter apps, agents, and guard rules.",
+        activityLog: pushActivity(current, "Space drafted", "Launch Lab was created with starter apps and guard rules.", "success"),
+      };
       });
     },
     setActiveSpace(space: string) {
@@ -225,6 +313,7 @@ export function NovaOSApp() {
         ...current,
         activeSpace: space,
         hubSignal: `${space} is now the active mission space.`,
+        activityLog: pushActivity(current, "Space switched", `${space} is now the active mission.`),
       }));
     },
     runHubPulse() {
@@ -232,6 +321,7 @@ export function NovaOSApp() {
         ...current,
         hubActions: current.hubActions + 1,
         hubSignal: "Nova refreshed files, spaces, guard state, and AI routing.",
+        activityLog: pushActivity(current, "System refreshed", "Files, spaces, guard state, and AI routing were checked.", "system"),
       }));
     },
     setOfflineStatus(status: NovaOfflineStatus) {
@@ -239,6 +329,10 @@ export function NovaOSApp() {
         ...current,
         offlineStatus: status,
         hubSignal: status === "ready" ? "Connection check completed. Cloud work is ready to resume." : current.hubSignal,
+        activityLog:
+          status === "ready"
+            ? pushActivity(current, "Connection ready", "Cloud work can resume after your approvals.", "success")
+            : current.activityLog,
       }));
     },
     setCrmActiveView(view: string) {
@@ -246,7 +340,6 @@ export function NovaOSApp() {
     },
     resetSystem() {
       writeSystemSnapshot(defaultNovaSystemState);
-      setActiveWindows(initialWindows);
     },
   };
 
@@ -256,7 +349,7 @@ export function NovaOSApp() {
         <DesktopShell
           system={system}
           systemActions={systemActions}
-          activeWindows={activeWindows}
+          activeWindows={system.openWindows}
           commandOpen={commandOpen}
           onOpen={openWindow}
           onClose={closeWindow}
