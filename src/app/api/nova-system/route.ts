@@ -1,4 +1,5 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { NextResponse } from "next/server";
 import { defaultNovaSystemState, mergeNovaSystemState } from "@/lib/nova-system";
@@ -12,6 +13,13 @@ const stateFile = path.join(runtimeDirectory, "system-state.json");
 async function readRuntimeState() {
   try {
     const raw = await readFile(stateFile, "utf8");
+    if (!raw.trim()) {
+      return {
+        source: "default" as const,
+        state: await writeRuntimeState(defaultNovaSystemState),
+      };
+    }
+
     return {
       source: "runtime" as const,
       state: mergeNovaSystemState(JSON.parse(raw)),
@@ -24,6 +32,13 @@ async function readRuntimeState() {
       };
     }
 
+    if (error instanceof SyntaxError) {
+      return {
+        source: "default" as const,
+        state: await writeRuntimeState(defaultNovaSystemState),
+      };
+    }
+
     throw error;
   }
 }
@@ -31,7 +46,9 @@ async function readRuntimeState() {
 async function writeRuntimeState(value: unknown) {
   const state = mergeNovaSystemState(value);
   await mkdir(runtimeDirectory, { recursive: true });
-  await writeFile(stateFile, JSON.stringify(state, null, 2), "utf8");
+  const tempFile = path.join(runtimeDirectory, `system-state.${process.pid}.${randomUUID()}.tmp`);
+  await writeFile(tempFile, JSON.stringify(state, null, 2), "utf8");
+  await rename(tempFile, stateFile);
   return state;
 }
 

@@ -10,6 +10,7 @@ import {
   HardDrive,
   Home,
   Image as ImageIcon,
+  List,
   Music2,
   Pin,
   Plus,
@@ -78,6 +79,7 @@ function fileContext(file: NovaFile) {
 
 export function MySpaceWindow({ system, systemActions, onClose, onMinimize, onFocus }: MySpaceWindowProps) {
   const [query, setQuery] = useState("");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const visibleFiles = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     if (!normalizedQuery) {
@@ -140,8 +142,14 @@ export function MySpaceWindow({ system, systemActions, onClose, onMinimize, onFo
               </label>
             </div>
             <div className="toolbar-actions">
-              <button className="icon-button" type="button" aria-label="Grid view">
-                <Grid3X3 size={16} />
+              <button
+                className={cn("icon-button", viewMode === "list" && "active")}
+                type="button"
+                aria-label={viewMode === "grid" ? "Switch to list view" : "Switch to grid view"}
+                title={viewMode === "grid" ? "Switch to list view" : "Switch to grid view"}
+                onClick={() => setViewMode((current) => (current === "grid" ? "list" : "grid"))}
+              >
+                {viewMode === "grid" ? <List size={16} /> : <Grid3X3 size={16} />}
               </button>
               <button className="add-button" type="button" aria-label="Add item" onClick={addFile}>
                 <Plus size={18} />
@@ -149,7 +157,7 @@ export function MySpaceWindow({ system, systemActions, onClose, onMinimize, onFo
             </div>
           </div>
 
-          <div className="file-workspace">
+          <div className={cn("file-workspace", viewMode === "list" && "list-view")}>
             <section className="file-browser" aria-label="File browser">
               <h3 className="section-title">Folders</h3>
               <div className="folder-grid">
