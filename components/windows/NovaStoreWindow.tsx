@@ -11,10 +11,11 @@ type NovaStoreWindowProps = {
   system: NovaSystemState;
   systemActions: NovaSystemActions;
   onClose?: () => void;
+  onMinimize?: () => void;
   onFocus?: () => void;
 };
 
-export function NovaStoreWindow({ system, systemActions, onClose, onFocus }: NovaStoreWindowProps) {
+export function NovaStoreWindow({ system, systemActions, onClose, onMinimize, onFocus }: NovaStoreWindowProps) {
   const [query, setQuery] = useState("");
   const [installing, setInstalling] = useState("");
 
@@ -68,6 +69,7 @@ export function NovaStoreWindow({ system, systemActions, onClose, onFocus }: Nov
       tone="dark"
       windowSize={system.windowSizes["nova-store"]}
       onClose={onClose}
+      onMinimize={onMinimize}
       onFocus={onFocus}
       onResizeEnd={(size) => systemActions.setWindowSize("nova-store", size)}
     >

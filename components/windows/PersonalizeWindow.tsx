@@ -24,6 +24,7 @@ type PersonalizeWindowProps = {
   system: NovaSystemState;
   systemActions: NovaSystemActions;
   onClose?: () => void;
+  onMinimize?: () => void;
   onFocus?: () => void;
 };
 
@@ -49,7 +50,7 @@ const panelOptions: Array<{ label: NovaPersonalizePanel; icon: ComponentType<{ s
 const fontScales = ["Small", "Standard", "Large"] as const;
 const densityOptions = ["Minimal", "Balanced", "Dense"] as const;
 
-export function PersonalizeWindow({ system, systemActions, onClose, onFocus }: PersonalizeWindowProps) {
+export function PersonalizeWindow({ system, systemActions, onClose, onMinimize, onFocus }: PersonalizeWindowProps) {
   function renderThemeControls() {
     return (
       <>
@@ -283,6 +284,7 @@ export function PersonalizeWindow({ system, systemActions, onClose, onFocus }: P
       className="window--personalize light-panel"
       windowSize={system.windowSizes.personalize}
       onClose={onClose}
+      onMinimize={onMinimize}
       onFocus={onFocus}
       onResizeEnd={(size) => systemActions.setWindowSize("personalize", size)}
     >

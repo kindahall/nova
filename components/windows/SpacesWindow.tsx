@@ -9,10 +9,11 @@ type SpacesWindowProps = {
   system: NovaSystemState;
   systemActions: NovaSystemActions;
   onClose?: () => void;
+  onMinimize?: () => void;
   onFocus?: () => void;
 };
 
-export function SpacesWindow({ system, systemActions, onClose, onFocus }: SpacesWindowProps) {
+export function SpacesWindow({ system, systemActions, onClose, onMinimize, onFocus }: SpacesWindowProps) {
   const activeSpaceDetails = system.spaces.find((space) => space[0] === system.activeSpace) ?? system.spaces[0];
 
   return (
@@ -24,6 +25,7 @@ export function SpacesWindow({ system, systemActions, onClose, onFocus }: Spaces
       tone="dark"
       windowSize={system.windowSizes.spaces}
       onClose={onClose}
+      onMinimize={onMinimize}
       onFocus={onFocus}
       onResizeEnd={(size) => systemActions.setWindowSize("spaces", size)}
     >

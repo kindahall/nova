@@ -43,6 +43,13 @@ export type NovaActivityEntry = {
   tone: "info" | "success" | "guard" | "system";
 };
 
+export type NovaCommandEntry = {
+  id: string;
+  time: string;
+  prompt: string;
+  result: string;
+};
+
 export type NovaWindowSize = {
   width: number;
   height: number;
@@ -50,6 +57,7 @@ export type NovaWindowSize = {
 
 export type NovaSystemState = {
   openWindows: WindowKey[];
+  minimizedWindows: WindowKey[];
   windowSizes: Partial<Record<WindowKey, NovaWindowSize>>;
   files: NovaFile[];
   activeFileSection: string;
@@ -70,11 +78,14 @@ export type NovaSystemState = {
   fontScale: NovaFontScale;
   interfaceDensity: NovaInterfaceDensity;
   soundEnabled: boolean;
+  mediaPlaying: boolean;
+  soundscape: string;
   offlineStatus: NovaOfflineStatus;
   hubActions: number;
   hubSignal: string;
   crmActiveView: string;
   activityLog: NovaActivityEntry[];
+  commandHistory: NovaCommandEntry[];
 };
 
 export type NovaSystemActions = {
@@ -92,6 +103,9 @@ export type NovaSystemActions = {
   setInterfaceDensity: (density: NovaInterfaceDensity) => void;
   setSoundEnabled: (enabled: boolean) => void;
   setWindowSize: (windowKey: WindowKey, size: NovaWindowSize) => void;
+  toggleSoundscape: () => void;
+  toggleMediaPlayback: () => void;
+  recordCommand: (prompt: string, result: string) => void;
   selectProvider: (provider: string) => void;
   toggleSelectedProvider: () => void;
   toggleGuardPermission: (permission: string) => void;
@@ -109,6 +123,7 @@ const initialWindows: WindowKey[] = ["my-space", "personalize"];
 
 export const defaultNovaSystemState: NovaSystemState = {
   openWindows: initialWindows,
+  minimizedWindows: [],
   windowSizes: {},
   files: recentFiles,
   activeFileSection: "My Space",
@@ -134,6 +149,8 @@ export const defaultNovaSystemState: NovaSystemState = {
   fontScale: "Standard",
   interfaceDensity: "Balanced",
   soundEnabled: true,
+  mediaPlaying: false,
+  soundscape: "Silent",
   offlineStatus: "offline",
   hubActions: 12,
   hubSignal: "System is calm. Builder Studio is still the active mission.",
@@ -161,6 +178,14 @@ export const defaultNovaSystemState: NovaSystemState = {
       tone: "success",
     },
   ],
+  commandHistory: [
+    {
+      id: "command-seed",
+      time: "09:42",
+      prompt: "Prepare Builder Studio",
+      result: "Nova Hub, Guard, AI Center, and My Space are ready.",
+    },
+  ],
 };
 
 export function mergeNovaSystemState(value: unknown): NovaSystemState {
@@ -177,13 +202,15 @@ export function mergeNovaSystemState(value: unknown): NovaSystemState {
       ...defaultNovaSystemState.theme,
       ...(state.theme ?? {}),
     },
+    minimizedWindows: Array.isArray(state.minimizedWindows) ? state.minimizedWindows : defaultNovaSystemState.minimizedWindows,
     windowSizes: state.windowSizes ?? defaultNovaSystemState.windowSizes,
     files: state.files?.length ? state.files : defaultNovaSystemState.files,
-    openWindows: state.openWindows?.length ? state.openWindows : defaultNovaSystemState.openWindows,
+    openWindows: Array.isArray(state.openWindows) ? state.openWindows : defaultNovaSystemState.openWindows,
     aiProviders: state.aiProviders?.length ? state.aiProviders : defaultNovaSystemState.aiProviders,
     guardPermissions: state.guardPermissions?.length ? state.guardPermissions : defaultNovaSystemState.guardPermissions,
     installedPacks: state.installedPacks?.length ? state.installedPacks : defaultNovaSystemState.installedPacks,
     spaces: state.spaces?.length ? state.spaces : defaultNovaSystemState.spaces,
     activityLog: state.activityLog?.length ? state.activityLog : defaultNovaSystemState.activityLog,
+    commandHistory: state.commandHistory?.length ? state.commandHistory : defaultNovaSystemState.commandHistory,
   };
 }

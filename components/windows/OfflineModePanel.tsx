@@ -9,10 +9,11 @@ type OfflineModePanelProps = {
   system: NovaSystemState;
   systemActions: NovaSystemActions;
   onClose?: () => void;
+  onMinimize?: () => void;
   onFocus?: () => void;
 };
 
-export function OfflineModePanel({ system, systemActions, onClose, onFocus }: OfflineModePanelProps) {
+export function OfflineModePanel({ system, systemActions, onClose, onMinimize, onFocus }: OfflineModePanelProps) {
   useEffect(() => {
     if (system.offlineStatus !== "checking") {
       return;
@@ -35,6 +36,7 @@ export function OfflineModePanel({ system, systemActions, onClose, onFocus }: Of
       tone="dark"
       windowSize={system.windowSizes["offline-mode"]}
       onClose={onClose}
+      onMinimize={onMinimize}
       onFocus={onFocus}
       onResizeEnd={(size) => systemActions.setWindowSize("offline-mode", size)}
     >

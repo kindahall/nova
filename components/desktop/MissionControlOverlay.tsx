@@ -18,6 +18,7 @@ import type { WindowKey } from "@/data/nova";
 
 type MissionControlOverlayProps = {
   activeWindows: WindowKey[];
+  minimizedWindows: WindowKey[];
   onCloseWindow: (window: WindowKey) => void;
   onDismiss: () => void;
   onOpenWindow: (window: WindowKey) => void;
@@ -39,10 +40,13 @@ const windowRegistry: Record<WindowKey, { label: string; subtitle: string; icon:
 
 export function MissionControlOverlay({
   activeWindows,
+  minimizedWindows,
   onCloseWindow,
   onDismiss,
   onOpenWindow,
 }: MissionControlOverlayProps) {
+  const liveWindows = [...activeWindows, ...minimizedWindows.filter((key) => !activeWindows.includes(key))];
+
   return (
     <div className="mission-control-backdrop" role="dialog" aria-modal="true" aria-label="Mission Control">
       <section className="mission-control-panel">
@@ -57,12 +61,13 @@ export function MissionControlOverlay({
         </header>
 
         <div className="mission-grid">
-          {activeWindows.map((windowKey, index) => {
+          {liveWindows.map((windowKey, index) => {
             const item = windowRegistry[windowKey];
             const Icon = item.icon;
             const focused = index === activeWindows.length - 1;
+            const minimized = minimizedWindows.includes(windowKey);
             return (
-              <article className={focused ? "mission-card focused" : "mission-card"} key={windowKey}>
+              <article className={focused ? "mission-card focused" : minimized ? "mission-card minimized" : "mission-card"} key={windowKey}>
                 <button
                   className="mission-open"
                   type="button"
@@ -80,7 +85,7 @@ export function MissionControlOverlay({
                   </span>
                 </button>
                 <div className="mission-card-footer">
-                  <span>{focused ? "Focused" : "Running"}</span>
+                  <span>{minimized ? "Minimized" : focused ? "Focused" : "Running"}</span>
                   <button
                     className="mini-close"
                     type="button"
@@ -94,7 +99,7 @@ export function MissionControlOverlay({
             );
           })}
 
-          {activeWindows.length === 0 ? (
+          {liveWindows.length === 0 ? (
             <div className="mission-empty">
               <Sparkles size={22} />
               <strong>No windows open</strong>

@@ -738,6 +738,15 @@ button {
   background: rgba(84, 211, 255, 0.18);
 }
 
+.shelf-button.minimized {
+  opacity: 0.72;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.shelf-button.minimized .shelf-icon {
+  box-shadow: inset 0 -3px 0 rgba(117, 214, 255, 0.5);
+}
+
 .shelf-icon {
   width: 42px;
   height: 42px;
@@ -842,6 +851,11 @@ button {
   transform: translateY(-3px);
   border-color: rgba(94, 216, 255, 0.46);
   background: rgba(255, 255, 255, 0.16);
+}
+
+.mission-card.minimized {
+  opacity: 0.72;
+  border-style: dashed;
 }
 
 .mission-open {
@@ -1854,6 +1868,37 @@ button {
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 12px;
+}
+
+.command-memory {
+  display: grid;
+  gap: 8px;
+}
+
+.command-memory span {
+  display: grid;
+  gap: 3px;
+  padding: 9px;
+  border-radius: 12px;
+  background: rgba(116, 103, 255, 0.08);
+}
+
+.command-memory strong,
+.command-memory small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.command-memory strong {
+  color: #303a70;
+  font-size: 12px;
+}
+
+.command-memory small {
+  color: #727a98;
+  font-size: 11px;
 }
 
 .module-list {

@@ -9,12 +9,13 @@ type NovaHubWindowProps = {
   system: NovaSystemState;
   systemActions: NovaSystemActions;
   onClose?: () => void;
+  onMinimize?: () => void;
   onFocus?: () => void;
   onCreateApp: () => void;
   onOpenWindow: (window: WindowKey) => void;
 };
 
-export function NovaHubWindow({ system, systemActions, onClose, onFocus, onCreateApp, onOpenWindow }: NovaHubWindowProps) {
+export function NovaHubWindow({ system, systemActions, onClose, onMinimize, onFocus, onCreateApp, onOpenWindow }: NovaHubWindowProps) {
   const connectedCount = system.aiProviders.filter((provider) => provider.state !== "Disconnected").length;
   const enabledPermissionCount = system.guardPermissions.filter((permission) => permission.enabled).length;
 
@@ -27,6 +28,7 @@ export function NovaHubWindow({ system, systemActions, onClose, onFocus, onCreat
       tone="dark"
       windowSize={system.windowSizes["nova-hub"]}
       onClose={onClose}
+      onMinimize={onMinimize}
       onFocus={onFocus}
       onAssist={systemActions.runHubPulse}
       onResizeEnd={(size) => systemActions.setWindowSize("nova-hub", size)}

@@ -8,6 +8,7 @@ type GeneratedCrmAppWindowProps = {
   system: NovaSystemState;
   systemActions: NovaSystemActions;
   onClose?: () => void;
+  onMinimize?: () => void;
   onFocus?: () => void;
 };
 
@@ -113,7 +114,7 @@ const crmViews: Record<
   },
 };
 
-export function GeneratedCrmAppWindow({ system, systemActions, onClose, onFocus }: GeneratedCrmAppWindowProps) {
+export function GeneratedCrmAppWindow({ system, systemActions, onClose, onMinimize, onFocus }: GeneratedCrmAppWindowProps) {
   const view = crmViews[system.crmActiveView] ?? crmViews.Dashboard;
 
   return (
@@ -125,6 +126,7 @@ export function GeneratedCrmAppWindow({ system, systemActions, onClose, onFocus 
       tone="dark"
       windowSize={system.windowSizes["crm-app"]}
       onClose={onClose}
+      onMinimize={onMinimize}
       onFocus={onFocus}
       onResizeEnd={(size) => systemActions.setWindowSize("crm-app", size)}
     >

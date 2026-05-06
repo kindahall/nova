@@ -11,6 +11,7 @@ type ActivityCenterWindowProps = {
   systemActions: NovaSystemActions;
   onOpenWindow: (window: WindowKey) => void;
   onClose?: () => void;
+  onMinimize?: () => void;
   onFocus?: () => void;
 };
 
@@ -26,7 +27,7 @@ const shortcuts = [
   ["Ctrl/Cmd 6", "Guard"],
 ];
 
-export function ActivityCenterWindow({ system, systemActions, onOpenWindow, onClose, onFocus }: ActivityCenterWindowProps) {
+export function ActivityCenterWindow({ system, systemActions, onOpenWindow, onClose, onMinimize, onFocus }: ActivityCenterWindowProps) {
   const connectedCount = system.aiProviders.filter((provider) => provider.state !== "Disconnected").length;
   const guardCount = system.guardPermissions.filter((permission) => permission.enabled).length;
 
@@ -39,6 +40,7 @@ export function ActivityCenterWindow({ system, systemActions, onOpenWindow, onCl
       tone="dark"
       windowSize={system.windowSizes["activity-center"]}
       onClose={onClose}
+      onMinimize={onMinimize}
       onFocus={onFocus}
       onAssist={systemActions.runHubPulse}
       onResizeEnd={(size) => systemActions.setWindowSize("activity-center", size)}

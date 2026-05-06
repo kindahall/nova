@@ -9,11 +9,12 @@ import { cn } from "@/lib/utils";
 
 type CreateNovaAppWindowProps = {
   onClose?: () => void;
+  onMinimize?: () => void;
   onFocus?: () => void;
   onGenerated: () => void;
 };
 
-export function CreateNovaAppWindow({ onClose, onFocus, onGenerated }: CreateNovaAppWindowProps) {
+export function CreateNovaAppWindow({ onClose, onMinimize, onFocus, onGenerated }: CreateNovaAppWindowProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [step, setStep] = useState(0);
 
@@ -44,6 +45,7 @@ export function CreateNovaAppWindow({ onClose, onFocus, onGenerated }: CreateNov
       className="window--create-app"
       tone="dark"
       onClose={onClose}
+      onMinimize={onMinimize}
       onFocus={onFocus}
     >
       <div className="builder-layout">

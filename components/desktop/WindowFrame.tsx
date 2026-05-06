@@ -3,7 +3,7 @@
 import { motion, useDragControls } from "framer-motion";
 import { Maximize2, Minus, Sparkles, X } from "lucide-react";
 import { useState } from "react";
-import type { CSSProperties, PointerEvent, ReactNode } from "react";
+import type { CSSProperties, MouseEvent, PointerEvent, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import type { WindowKey } from "@/data/nova";
 import type { NovaWindowSize } from "@/lib/nova-system";
@@ -40,6 +40,8 @@ export function WindowFrame({
 }: WindowFrameProps) {
   const dragControls = useDragControls();
   const [draftSize, setDraftSize] = useState<NovaWindowSize | undefined>();
+  const [restoreSize, setRestoreSize] = useState<NovaWindowSize | undefined>();
+  const [maximized, setMaximized] = useState(false);
 
   function startDrag(event: PointerEvent<HTMLElement>) {
     onFocus?.();
@@ -71,6 +73,7 @@ export function WindowFrame({
         height: Math.round(Math.min(maxHeight, Math.max(260, startHeight + moveEvent.clientY - startY))),
       };
       setDraftSize(nextSize);
+      setMaximized(false);
     }
 
     function handlePointerUp() {
@@ -85,6 +88,36 @@ export function WindowFrame({
 
   const effectiveSize = draftSize ?? windowSize;
   const sizeStyle = effectiveSize ? ({ width: effectiveSize.width, height: effectiveSize.height } as CSSProperties) : undefined;
+
+  function toggleMaximize(event: MouseEvent<HTMLButtonElement>) {
+    onFocus?.();
+
+    if (maximized) {
+      const nextSize = restoreSize ?? windowSize;
+      setDraftSize(nextSize);
+      setMaximized(false);
+      if (nextSize) {
+        onResizeEnd?.(nextSize);
+      }
+      return;
+    }
+
+    const currentFrame = event.currentTarget.closest(".window-frame");
+    const rect = currentFrame instanceof HTMLElement ? currentFrame.getBoundingClientRect() : undefined;
+    const currentSize = {
+      width: Math.round(rect?.width ?? effectiveSize?.width ?? 780),
+      height: Math.round(rect?.height ?? effectiveSize?.height ?? 560),
+    };
+    const nextSize = {
+      width: Math.round(Math.min(window.innerWidth - 150, Math.max(760, window.innerWidth * 0.78))),
+      height: Math.round(Math.min(window.innerHeight - 132, Math.max(540, window.innerHeight * 0.76))),
+    };
+
+    setRestoreSize(currentSize);
+    setDraftSize(nextSize);
+    setMaximized(true);
+    onResizeEnd?.(nextSize);
+  }
 
   return (
     <motion.section
@@ -110,8 +143,13 @@ export function WindowFrame({
           </div>
         </div>
         <div className="window-actions" onPointerDown={(event) => event.stopPropagation()}>
-          <button className="icon-button" type="button" aria-label="Nova assistance" onClick={onAssist}>
-            <Sparkles size={16} />
+          {onAssist ? (
+            <button className="icon-button" type="button" aria-label="Nova assistance" onClick={onAssist}>
+              <Sparkles size={16} />
+            </button>
+          ) : null}
+          <button className="icon-button" type="button" aria-label={maximized ? `Restore ${title}` : `Maximize ${title}`} onClick={toggleMaximize}>
+            <Maximize2 size={16} />
           </button>
           <button className="icon-button" type="button" aria-label={`Minimize ${title}`} onClick={onMinimize ?? onClose}>
             <Minus size={16} />

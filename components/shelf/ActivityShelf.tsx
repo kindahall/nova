@@ -8,6 +8,7 @@ import {
   Music2,
   PanelsTopLeft,
   Play,
+  Pause,
   Plus,
   Settings,
   ShieldCheck,
@@ -18,9 +19,13 @@ import {
 import type { ComponentType } from "react";
 import type { WindowKey } from "@/data/nova";
 import { cn } from "@/lib/utils";
+import type { NovaSystemActions, NovaSystemState } from "@/lib/nova-system";
 
 type ActivityShelfProps = {
   activeWindows: WindowKey[];
+  minimizedWindows: WindowKey[];
+  system: NovaSystemState;
+  systemActions: NovaSystemActions;
   onOpen: (window: WindowKey) => void;
   onCommand: () => void;
   onSwitcher: () => void;
@@ -42,8 +47,17 @@ const shelfRegistry: Record<WindowKey, { label: string; sublabel: string; icon: 
 
 const pinnedKeys: WindowKey[] = ["my-space", "personalize", "ai-center", "create-app"];
 
-export function ActivityShelf({ activeWindows, onOpen, onCommand, onSwitcher }: ActivityShelfProps) {
-  const runningKeys = activeWindows.filter((key) => !pinnedKeys.includes(key));
+export function ActivityShelf({
+  activeWindows,
+  minimizedWindows,
+  system,
+  systemActions,
+  onOpen,
+  onCommand,
+  onSwitcher,
+}: ActivityShelfProps) {
+  const liveWindows = [...activeWindows, ...minimizedWindows.filter((key) => !activeWindows.includes(key))];
+  const runningKeys = liveWindows.filter((key) => !pinnedKeys.includes(key));
 
   return (
     <div className="shelf" aria-label="Activity Shelf">
@@ -56,12 +70,14 @@ export function ActivityShelf({ activeWindows, onOpen, onCommand, onSwitcher }: 
         const item = shelfRegistry[key];
         const Icon = item.icon;
         const active = activeWindows.includes(key);
+        const minimized = minimizedWindows.includes(key);
         return (
           <button
             key={item.label}
-            className={cn("shelf-button", active && "active")}
+            className={cn("shelf-button", active && "active", minimized && "minimized")}
             type="button"
             onClick={() => onOpen(key)}
+            title={minimized ? `${item.label} minimized` : item.label}
           >
             <span className="shelf-icon">
               <Icon size={20} />
@@ -77,8 +93,16 @@ export function ActivityShelf({ activeWindows, onOpen, onCommand, onSwitcher }: 
       {runningKeys.map((key) => {
         const item = shelfRegistry[key];
         const Icon = item.icon;
+        const active = activeWindows.includes(key);
+        const minimized = minimizedWindows.includes(key);
         return (
-          <button key={key} className="shelf-button active running" type="button" onClick={() => onOpen(key)}>
+          <button
+            key={key}
+            className={cn("shelf-button running", active && "active", minimized && "minimized")}
+            type="button"
+            onClick={() => onOpen(key)}
+            title={minimized ? `${item.label} minimized` : item.label}
+          >
             <span className="shelf-icon">
               <Icon size={20} />
             </span>
@@ -90,14 +114,26 @@ export function ActivityShelf({ activeWindows, onOpen, onCommand, onSwitcher }: 
         );
       })}
       <span className="shelf-divider" />
-      <button className="shelf-button icon-only" type="button" aria-label="Weightless music">
+      <button
+        className={cn("shelf-button icon-only", system.soundscape !== "Silent" && "active")}
+        type="button"
+        aria-label={`Soundscape ${system.soundscape}`}
+        title={`Soundscape: ${system.soundscape}`}
+        onClick={systemActions.toggleSoundscape}
+      >
         <span className="shelf-icon">
           <Music2 size={20} />
         </span>
       </button>
-      <button className="shelf-button icon-only" type="button" aria-label="Play media">
+      <button
+        className={cn("shelf-button icon-only", system.mediaPlaying && "active")}
+        type="button"
+        aria-label={system.mediaPlaying ? "Pause media" : "Play media"}
+        title={system.mediaPlaying ? "Pause media" : "Play media"}
+        onClick={systemActions.toggleMediaPlayback}
+      >
         <span className="shelf-icon">
-          <Play size={20} />
+          {system.mediaPlaying ? <Pause size={20} /> : <Play size={20} />}
         </span>
       </button>
       <button className="shelf-button icon-only" type="button" onClick={() => onOpen("nova-store")} aria-label="Open Nova Store">

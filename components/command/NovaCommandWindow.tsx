@@ -16,8 +16,11 @@ import type { FormEvent } from "react";
 import { useState } from "react";
 import { crmModules, type WindowKey } from "@/data/nova";
 import { WindowFrame } from "@/components/desktop/WindowFrame";
+import type { NovaSystemActions, NovaSystemState } from "@/lib/nova-system";
 
 type NovaCommandWindowProps = {
+  system: NovaSystemState;
+  systemActions: NovaSystemActions;
   onClose: () => void;
   onCreateApp: () => void;
   onOpenGuard: () => void;
@@ -85,7 +88,14 @@ const commandTargets: Array<{ key: WindowKey; keywords: string[]; title: string;
   },
 ];
 
-export function NovaCommandWindow({ onClose, onCreateApp, onOpenGuard, onOpenWindow }: NovaCommandWindowProps) {
+export function NovaCommandWindow({
+  system,
+  systemActions,
+  onClose,
+  onCreateApp,
+  onOpenGuard,
+  onOpenWindow,
+}: NovaCommandWindowProps) {
   const [prompt, setPrompt] = useState(defaultPrompt);
   const [answered, setAnswered] = useState(false);
   const [result, setResult] = useState<CommandResult | null>(null);
@@ -98,6 +108,7 @@ export function NovaCommandWindow({ onClose, onCreateApp, onOpenGuard, onOpenWin
       target: target.key,
       actionLabel: target.actionLabel,
     });
+    systemActions.recordCommand(prompt, target.body);
     onOpenWindow(target.key);
   }
 
@@ -116,6 +127,7 @@ export function NovaCommandWindow({ onClose, onCreateApp, onOpenGuard, onOpenWin
     if (wantsGeneratedApp) {
       setAnswered(true);
       setResult(null);
+      systemActions.recordCommand(prompt, "Nova prepared a CRM Nova App generation plan.");
       return;
     }
 
@@ -131,6 +143,7 @@ export function NovaCommandWindow({ onClose, onCreateApp, onOpenGuard, onOpenWin
       target: "nova-hub",
       actionLabel: "Focus Hub",
     });
+    systemActions.recordCommand(prompt, "Nova opened the system overview and kept the command in context.");
     onOpenWindow("nova-hub");
   }
 
@@ -196,7 +209,14 @@ export function NovaCommandWindow({ onClose, onCreateApp, onOpenGuard, onOpenWin
       ) : null}
 
       <div className="suggestion-grid">
-        <button className="suggestion-card" type="button" onClick={() => setAnswered(true)}>
+        <button
+          className="suggestion-card"
+          type="button"
+          onClick={() => {
+            setAnswered(true);
+            systemActions.recordCommand("Create a client OS app", "Nova prepared CRM, invoices, calendar, tasks, and dashboard modules.");
+          }}
+        >
           <AppWindow size={18} />
           <strong>Create a client OS app</strong>
           <span>CRM, invoices, calendar, tasks, and dashboard from one intention.</span>
@@ -207,6 +227,7 @@ export function NovaCommandWindow({ onClose, onCreateApp, onOpenGuard, onOpenWin
           onClick={() => {
             onOpenGuard();
             setAnswered(false);
+            systemActions.recordCommand("Review sensitive actions", "Nova Guard opened from Command suggestions.");
             setResult({
               title: "Nova Guard opened",
               body: "Approvals, protected files, and action ledger are ready to inspect.",
@@ -269,8 +290,15 @@ export function NovaCommandWindow({ onClose, onCreateApp, onOpenGuard, onOpenWin
           </div>
         </div>
         <div className="glass-card light-card">
-          <h3>Mode</h3>
-          <p>Quiet mode keeps Nova concise and asks before sensitive actions.</p>
+          <h3>Command memory</h3>
+          <div className="command-memory">
+            {system.commandHistory.slice(0, 3).map((entry) => (
+              <span key={entry.id}>
+                <strong>{entry.prompt}</strong>
+                <small>{entry.result}</small>
+              </span>
+            ))}
+          </div>
         </div>
       </div>
     </WindowFrame>

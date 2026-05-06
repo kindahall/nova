@@ -10,10 +10,11 @@ type NovaGuardWindowProps = {
   system: NovaSystemState;
   systemActions: NovaSystemActions;
   onClose?: () => void;
+  onMinimize?: () => void;
   onFocus?: () => void;
 };
 
-export function NovaGuardWindow({ system, systemActions, onClose, onFocus }: NovaGuardWindowProps) {
+export function NovaGuardWindow({ system, systemActions, onClose, onMinimize, onFocus }: NovaGuardWindowProps) {
   const enabledCount = system.guardPermissions.filter((permission) => permission.enabled).length;
 
   return (
@@ -25,6 +26,7 @@ export function NovaGuardWindow({ system, systemActions, onClose, onFocus }: Nov
       tone="dark"
       windowSize={system.windowSizes["nova-guard"]}
       onClose={onClose}
+      onMinimize={onMinimize}
       onFocus={onFocus}
       onResizeEnd={(size) => systemActions.setWindowSize("nova-guard", size)}
     >

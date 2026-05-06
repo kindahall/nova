@@ -27,10 +27,12 @@ type DesktopShellProps = {
   system: NovaSystemState;
   systemActions: NovaSystemActions;
   activeWindows: WindowKey[];
+  minimizedWindows: WindowKey[];
   commandOpen: boolean;
   switcherOpen: boolean;
   onOpen: (window: WindowKey) => void;
   onClose: (window: WindowKey) => void;
+  onMinimize: (window: WindowKey) => void;
   onOpenCommand: () => void;
   onCloseCommand: () => void;
   onOpenSwitcher: () => void;
@@ -43,10 +45,12 @@ export function DesktopShell({
   system,
   systemActions,
   activeWindows,
+  minimizedWindows,
   commandOpen,
   switcherOpen,
   onOpen,
   onClose,
+  onMinimize,
   onOpenCommand,
   onCloseCommand,
   onOpenSwitcher,
@@ -63,6 +67,7 @@ export function DesktopShell({
             system={system}
             systemActions={systemActions}
             onClose={() => onClose(windowKey)}
+            onMinimize={() => onMinimize(windowKey)}
             onFocus={() => onOpen(windowKey)}
           />
         );
@@ -73,6 +78,7 @@ export function DesktopShell({
             system={system}
             systemActions={systemActions}
             onClose={() => onClose(windowKey)}
+            onMinimize={() => onMinimize(windowKey)}
             onFocus={() => onOpen(windowKey)}
           />
         );
@@ -83,6 +89,7 @@ export function DesktopShell({
             system={system}
             systemActions={systemActions}
             onClose={() => onClose(windowKey)}
+            onMinimize={() => onMinimize(windowKey)}
             onCreateApp={onCreateApp}
             onFocus={() => onOpen(windowKey)}
             onOpenWindow={onOpen}
@@ -95,6 +102,7 @@ export function DesktopShell({
             system={system}
             systemActions={systemActions}
             onClose={() => onClose(windowKey)}
+            onMinimize={() => onMinimize(windowKey)}
             onFocus={() => onOpen(windowKey)}
           />
         );
@@ -105,6 +113,7 @@ export function DesktopShell({
             system={system}
             systemActions={systemActions}
             onClose={() => onClose(windowKey)}
+            onMinimize={() => onMinimize(windowKey)}
             onFocus={() => onOpen(windowKey)}
           />
         );
@@ -115,6 +124,7 @@ export function DesktopShell({
             system={system}
             systemActions={systemActions}
             onClose={() => onClose(windowKey)}
+            onMinimize={() => onMinimize(windowKey)}
             onFocus={() => onOpen(windowKey)}
           />
         );
@@ -125,6 +135,7 @@ export function DesktopShell({
             system={system}
             systemActions={systemActions}
             onClose={() => onClose(windowKey)}
+            onMinimize={() => onMinimize(windowKey)}
             onFocus={() => onOpen(windowKey)}
           />
         );
@@ -135,6 +146,7 @@ export function DesktopShell({
             system={system}
             systemActions={systemActions}
             onClose={() => onClose(windowKey)}
+            onMinimize={() => onMinimize(windowKey)}
             onFocus={() => onOpen(windowKey)}
           />
         );
@@ -146,6 +158,7 @@ export function DesktopShell({
             systemActions={systemActions}
             onOpenWindow={onOpen}
             onClose={() => onClose(windowKey)}
+            onMinimize={() => onMinimize(windowKey)}
             onFocus={() => onOpen(windowKey)}
           />
         );
@@ -154,6 +167,7 @@ export function DesktopShell({
           <CreateNovaAppWindow
             key={windowKey}
             onClose={() => onClose(windowKey)}
+            onMinimize={() => onMinimize(windowKey)}
             onGenerated={onGenerated}
             onFocus={() => onOpen(windowKey)}
           />
@@ -165,6 +179,7 @@ export function DesktopShell({
             system={system}
             systemActions={systemActions}
             onClose={() => onClose(windowKey)}
+            onMinimize={() => onMinimize(windowKey)}
             onFocus={() => onOpen(windowKey)}
           />
         );
@@ -195,6 +210,8 @@ export function DesktopShell({
           {commandOpen ? (
             <NovaCommandWindow
               key="nova-command"
+              system={system}
+              systemActions={systemActions}
               onClose={onCloseCommand}
               onCreateApp={onCreateApp}
               onOpenGuard={() => onOpen("nova-guard")}
@@ -207,13 +224,22 @@ export function DesktopShell({
       {switcherOpen ? (
         <MissionControlOverlay
           activeWindows={activeWindows}
+          minimizedWindows={minimizedWindows}
           onOpenWindow={onOpen}
           onCloseWindow={onClose}
           onDismiss={onCloseSwitcher}
         />
       ) : null}
 
-      <ActivityShelf activeWindows={activeWindows} onOpen={onOpen} onCommand={onOpenCommand} onSwitcher={onOpenSwitcher} />
+      <ActivityShelf
+        activeWindows={activeWindows}
+        minimizedWindows={minimizedWindows}
+        system={system}
+        systemActions={systemActions}
+        onOpen={onOpen}
+        onCommand={onOpenCommand}
+        onSwitcher={onOpenSwitcher}
+      />
     </main>
   );
 }

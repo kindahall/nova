@@ -30,6 +30,7 @@ type MySpaceWindowProps = {
   system: NovaSystemState;
   systemActions: NovaSystemActions;
   onClose?: () => void;
+  onMinimize?: () => void;
   onFocus?: () => void;
 };
 
@@ -75,7 +76,7 @@ function fileContext(file: NovaFile) {
   return "Nova document ready for planning, generation, and workspace context.";
 }
 
-export function MySpaceWindow({ system, systemActions, onClose, onFocus }: MySpaceWindowProps) {
+export function MySpaceWindow({ system, systemActions, onClose, onMinimize, onFocus }: MySpaceWindowProps) {
   const [query, setQuery] = useState("");
   const visibleFiles = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -101,6 +102,7 @@ export function MySpaceWindow({ system, systemActions, onClose, onFocus }: MySpa
       className="window--my-space light-panel"
       windowSize={system.windowSizes["my-space"]}
       onClose={onClose}
+      onMinimize={onMinimize}
       onFocus={onFocus}
       onResizeEnd={(size) => systemActions.setWindowSize("my-space", size)}
     >

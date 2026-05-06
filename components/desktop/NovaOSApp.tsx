@@ -197,6 +197,7 @@ export function NovaOSApp() {
       return {
         ...current,
         openWindows: [...next, windowKey],
+        minimizedWindows: current.minimizedWindows.filter((item) => item !== windowKey),
       };
     });
   }, [updateSystem]);
@@ -205,6 +206,18 @@ export function NovaOSApp() {
     updateSystem((current) => ({
       ...current,
       openWindows: current.openWindows.filter((item) => item !== windowKey),
+      minimizedWindows: current.minimizedWindows.filter((item) => item !== windowKey),
+    }));
+  }, [updateSystem]);
+
+  const minimizeWindow = useCallback((windowKey: WindowKey) => {
+    updateSystem((current) => ({
+      ...current,
+      openWindows: current.openWindows.filter((item) => item !== windowKey),
+      minimizedWindows: current.minimizedWindows.includes(windowKey)
+        ? current.minimizedWindows
+        : [...current.minimizedWindows, windowKey],
+      activityLog: pushActivity(current, "Window minimized", `${windowKey.replaceAll("-", " ")} was sent to the Activity Shelf.`, "system"),
     }));
   }, [updateSystem]);
 
@@ -278,6 +291,7 @@ export function NovaOSApp() {
       return {
         ...current,
         openWindows: [...withoutBuilder, "crm-app"],
+        minimizedWindows: current.minimizedWindows.filter((item) => item !== "crm-app" && item !== "create-app"),
         activityLog: pushActivity(current, "ClientFlow opened", "The generated CRM Nova App is now running.", "success"),
       };
     });
@@ -439,6 +453,53 @@ export function NovaOSApp() {
         },
       }));
     },
+    toggleSoundscape() {
+      updateSystem((current) => {
+        const nextSoundscape = current.soundscape === "Focus Flow" ? "Silent" : "Focus Flow";
+        return {
+          ...current,
+          soundscape: nextSoundscape,
+          soundEnabled: nextSoundscape !== "Silent",
+          hubSignal: nextSoundscape === "Silent" ? "Soundscape muted." : "Focus Flow soundscape is active.",
+          activityLog: pushActivity(
+            current,
+            "Soundscape changed",
+            nextSoundscape === "Silent" ? "Nova soundscape is muted." : "Focus Flow soundscape is running.",
+            "system"
+          ),
+        };
+      });
+    },
+    toggleMediaPlayback() {
+      updateSystem((current) => ({
+        ...current,
+        mediaPlaying: !current.mediaPlaying,
+        hubSignal: !current.mediaPlaying ? "Media preview started in the shelf." : "Media preview paused.",
+        activityLog: pushActivity(
+          current,
+          "Media shelf changed",
+          !current.mediaPlaying ? "Media preview started." : "Media preview paused.",
+          "system"
+        ),
+      }));
+    },
+    recordCommand(prompt: string, result: string) {
+      updateSystem((current) => ({
+        ...current,
+        commandHistory: [
+          {
+            id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+            time: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
+            prompt,
+            result,
+          },
+          ...current.commandHistory,
+        ].slice(0, 8),
+        hubActions: current.hubActions + 1,
+        hubSignal: result,
+        activityLog: pushActivity(current, "Nova Command", result, "system"),
+      }));
+    },
     selectProvider(provider: string) {
       updateSystem((current) => ({ ...current, selectedProvider: provider }));
     },
@@ -560,10 +621,12 @@ export function NovaOSApp() {
           system={system}
           systemActions={systemActions}
           activeWindows={system.openWindows}
+          minimizedWindows={system.minimizedWindows}
           commandOpen={commandOpen}
           switcherOpen={switcherOpen}
           onOpen={openWindow}
           onClose={closeWindow}
+          onMinimize={minimizeWindow}
           onOpenCommand={() => setCommandOpen(true)}
           onCloseCommand={() => setCommandOpen(false)}
           onOpenSwitcher={() => {

@@ -9,10 +9,11 @@ type AiCenterWindowProps = {
   system: NovaSystemState;
   systemActions: NovaSystemActions;
   onClose?: () => void;
+  onMinimize?: () => void;
   onFocus?: () => void;
 };
 
-export function AiCenterWindow({ system, systemActions, onClose, onFocus }: AiCenterWindowProps) {
+export function AiCenterWindow({ system, systemActions, onClose, onMinimize, onFocus }: AiCenterWindowProps) {
   const activeProvider = system.aiProviders.find((provider) => provider.name === system.selectedProvider) ?? system.aiProviders[0];
   const connectedCount = system.aiProviders.filter((provider) => provider.state !== "Disconnected").length;
 
@@ -25,6 +26,7 @@ export function AiCenterWindow({ system, systemActions, onClose, onFocus }: AiCe
       tone="dark"
       windowSize={system.windowSizes["ai-center"]}
       onClose={onClose}
+      onMinimize={onMinimize}
       onFocus={onFocus}
       onResizeEnd={(size) => systemActions.setWindowSize("ai-center", size)}
     >
