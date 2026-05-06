@@ -237,6 +237,7 @@ export function DesktopShell({
         system={system}
         systemActions={systemActions}
         onOpen={onOpen}
+        onMinimize={onMinimize}
         onCommand={onOpenCommand}
         onSwitcher={onOpenSwitcher}
       />

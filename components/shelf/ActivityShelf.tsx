@@ -27,6 +27,7 @@ type ActivityShelfProps = {
   system: NovaSystemState;
   systemActions: NovaSystemActions;
   onOpen: (window: WindowKey) => void;
+  onMinimize: (window: WindowKey) => void;
   onCommand: () => void;
   onSwitcher: () => void;
 };
@@ -53,11 +54,38 @@ export function ActivityShelf({
   system,
   systemActions,
   onOpen,
+  onMinimize,
   onCommand,
   onSwitcher,
 }: ActivityShelfProps) {
   const liveWindows = [...activeWindows, ...minimizedWindows.filter((key) => !activeWindows.includes(key))];
   const runningKeys = liveWindows.filter((key) => !pinnedKeys.includes(key));
+  const focusedWindow = activeWindows.at(-1);
+
+  function windowButtonState(key: WindowKey) {
+    const active = activeWindows.includes(key);
+    const minimized = minimizedWindows.includes(key);
+    const focused = focusedWindow === key;
+    const action = minimized ? "Restore" : focused ? "Minimize" : active ? "Focus" : "Open";
+
+    return { active, minimized, focused, action };
+  }
+
+  function handleWindowButton(key: WindowKey) {
+    const { focused, minimized } = windowButtonState(key);
+
+    if (minimized) {
+      onOpen(key);
+      return;
+    }
+
+    if (focused) {
+      onMinimize(key);
+      return;
+    }
+
+    onOpen(key);
+  }
 
   return (
     <div className="shelf" aria-label="Activity Shelf">
@@ -69,15 +97,15 @@ export function ActivityShelf({
       {pinnedKeys.map((key) => {
         const item = shelfRegistry[key];
         const Icon = item.icon;
-        const active = activeWindows.includes(key);
-        const minimized = minimizedWindows.includes(key);
+        const { active, minimized, action } = windowButtonState(key);
         return (
           <button
             key={item.label}
             className={cn("shelf-button", active && "active", minimized && "minimized")}
             type="button"
-            onClick={() => onOpen(key)}
-            title={minimized ? `${item.label} minimized` : item.label}
+            onClick={() => handleWindowButton(key)}
+            aria-label={`${action} ${item.label}`}
+            title={`${action} ${item.label}`}
           >
             <span className="shelf-icon">
               <Icon size={20} />
@@ -93,15 +121,15 @@ export function ActivityShelf({
       {runningKeys.map((key) => {
         const item = shelfRegistry[key];
         const Icon = item.icon;
-        const active = activeWindows.includes(key);
-        const minimized = minimizedWindows.includes(key);
+        const { active, minimized, action } = windowButtonState(key);
         return (
           <button
             key={key}
             className={cn("shelf-button running", active && "active", minimized && "minimized")}
             type="button"
-            onClick={() => onOpen(key)}
-            title={minimized ? `${item.label} minimized` : item.label}
+            onClick={() => handleWindowButton(key)}
+            aria-label={`${action} ${item.label}`}
+            title={`${action} ${item.label}`}
           >
             <span className="shelf-icon">
               <Icon size={20} />

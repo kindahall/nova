@@ -48,6 +48,11 @@ export function WindowFrame({
     dragControls.start(event);
   }
 
+  function stopWindowAction(event: MouseEvent<HTMLButtonElement>) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
   function startResize(event: PointerEvent<HTMLButtonElement>) {
     event.preventDefault();
     event.stopPropagation();
@@ -90,6 +95,7 @@ export function WindowFrame({
   const sizeStyle = effectiveSize ? ({ width: effectiveSize.width, height: effectiveSize.height } as CSSProperties) : undefined;
 
   function toggleMaximize(event: MouseEvent<HTMLButtonElement>) {
+    stopWindowAction(event);
     onFocus?.();
 
     if (maximized) {
@@ -119,6 +125,21 @@ export function WindowFrame({
     onResizeEnd?.(nextSize);
   }
 
+  function handleAssist(event: MouseEvent<HTMLButtonElement>) {
+    stopWindowAction(event);
+    onAssist?.();
+  }
+
+  function handleMinimize(event: MouseEvent<HTMLButtonElement>) {
+    stopWindowAction(event);
+    onMinimize?.();
+  }
+
+  function handleClose(event: MouseEvent<HTMLButtonElement>) {
+    stopWindowAction(event);
+    onClose?.();
+  }
+
   return (
     <motion.section
       className={cn("window-frame", tone === "dark" && "dark", tone === "command" && "command", className)}
@@ -142,20 +163,22 @@ export function WindowFrame({
             {subtitle ? <span>{subtitle}</span> : null}
           </div>
         </div>
-        <div className="window-actions" onPointerDown={(event) => event.stopPropagation()}>
+        <div className="window-actions" onPointerDown={(event) => event.stopPropagation()} onClick={(event) => event.stopPropagation()}>
           {onAssist ? (
-            <button className="icon-button" type="button" aria-label="Nova assistance" onClick={onAssist}>
+            <button className="icon-button" type="button" aria-label="Nova assistance" onClick={handleAssist}>
               <Sparkles size={16} />
             </button>
           ) : null}
           <button className="icon-button" type="button" aria-label={maximized ? `Restore ${title}` : `Maximize ${title}`} onClick={toggleMaximize}>
             <Maximize2 size={16} />
           </button>
-          <button className="icon-button" type="button" aria-label={`Minimize ${title}`} onClick={onMinimize ?? onClose}>
-            <Minus size={16} />
-          </button>
+          {onMinimize ? (
+            <button className="icon-button" type="button" aria-label={`Minimize ${title}`} onClick={handleMinimize}>
+              <Minus size={16} />
+            </button>
+          ) : null}
           {onClose ? (
-            <button className="icon-button" type="button" aria-label={`Close ${title}`} onClick={onClose}>
+            <button className="icon-button" type="button" aria-label={`Close ${title}`} onClick={handleClose}>
               <X size={16} />
             </button>
           ) : null}

@@ -56,6 +56,7 @@ export type NovaWindowSize = {
 };
 
 export type NovaSystemState = {
+  stateVersion: number;
   openWindows: WindowKey[];
   minimizedWindows: WindowKey[];
   windowSizes: Partial<Record<WindowKey, NovaWindowSize>>;
@@ -119,9 +120,10 @@ export type NovaSystemActions = {
   resetSystem: () => void;
 };
 
-const initialWindows: WindowKey[] = ["my-space", "personalize"];
+const initialWindows: WindowKey[] = ["personalize"];
 
 export const defaultNovaSystemState: NovaSystemState = {
+  stateVersion: 2,
   openWindows: initialWindows,
   minimizedWindows: [],
   windowSizes: {},
@@ -194,10 +196,18 @@ export function mergeNovaSystemState(value: unknown): NovaSystemState {
   }
 
   const state = value as Partial<NovaSystemState>;
+  const incomingOpenWindows = Array.isArray(state.openWindows) ? state.openWindows : defaultNovaSystemState.openWindows;
+  const isLegacyDefaultWindowStack =
+    state.stateVersion !== defaultNovaSystemState.stateVersion &&
+    incomingOpenWindows.length === 2 &&
+    incomingOpenWindows[0] === "my-space" &&
+    incomingOpenWindows[1] === "personalize" &&
+    !(Array.isArray(state.minimizedWindows) && state.minimizedWindows.length);
 
   return {
     ...defaultNovaSystemState,
     ...state,
+    stateVersion: defaultNovaSystemState.stateVersion,
     theme: {
       ...defaultNovaSystemState.theme,
       ...(state.theme ?? {}),
@@ -205,7 +215,7 @@ export function mergeNovaSystemState(value: unknown): NovaSystemState {
     minimizedWindows: Array.isArray(state.minimizedWindows) ? state.minimizedWindows : defaultNovaSystemState.minimizedWindows,
     windowSizes: state.windowSizes ?? defaultNovaSystemState.windowSizes,
     files: state.files?.length ? state.files : defaultNovaSystemState.files,
-    openWindows: Array.isArray(state.openWindows) ? state.openWindows : defaultNovaSystemState.openWindows,
+    openWindows: isLegacyDefaultWindowStack ? defaultNovaSystemState.openWindows : incomingOpenWindows,
     aiProviders: state.aiProviders?.length ? state.aiProviders : defaultNovaSystemState.aiProviders,
     guardPermissions: state.guardPermissions?.length ? state.guardPermissions : defaultNovaSystemState.guardPermissions,
     installedPacks: state.installedPacks?.length ? state.installedPacks : defaultNovaSystemState.installedPacks,

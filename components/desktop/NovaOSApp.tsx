@@ -169,12 +169,12 @@ export function NovaOSApp() {
         }
 
         const hasLocalState = Boolean(window.localStorage.getItem(SYSTEM_STORAGE_KEY));
-        if (payload.source === "runtime" || !hasLocalState) {
+        if (!hasLocalState) {
           writeSystemSnapshot(mergeNovaSystemState(payload.state), { persist: false });
           return;
         }
 
-        persistSystemSnapshot(getSystemSnapshot());
+        writeSystemSnapshot(getSystemSnapshot());
       })
       .catch(() => {
         persistSystemSnapshot(getSystemSnapshot());
