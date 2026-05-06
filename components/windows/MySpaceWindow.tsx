@@ -2,6 +2,7 @@
 
 import {
   Archive,
+  ArrowLeft,
   Clock,
   ClipboardCheck,
   Database,
@@ -21,6 +22,7 @@ import {
   Sparkles,
   Star,
   Tags,
+  X,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { folders, type NovaFile } from "@/data/nova";
@@ -149,9 +151,80 @@ function fileContext(file: NovaFile) {
   return "Nova document ready for planning, generation, and workspace context.";
 }
 
+function fileReaderContent(file: NovaFile) {
+  if (/CSV|Spreadsheet/.test(file[1])) {
+    return (
+      <div className="reader-table">
+        {[
+          ["Name", "Status", "Value"],
+          ["Aster Studio", "Active", "$12.4k"],
+          ["Northline Labs", "Invoice", "$8.9k"],
+          ["Luma Works", "Follow-up", "$4.8k"],
+        ].map((row) => (
+          <span key={row.join("-")}>
+            {row.map((cell) => (
+              <b key={cell}>{cell}</b>
+            ))}
+          </span>
+        ))}
+      </div>
+    );
+  }
+
+  if (/JSON/.test(file[1])) {
+    return (
+      <pre className="reader-code">{`{
+  "space": "Builder Studio",
+  "source": "${file[0]}",
+  "indexed": true,
+  "guard": "visible"
+}`}</pre>
+    );
+  }
+
+  if (/PNG|Design/.test(file[1])) {
+    return (
+      <div className="reader-canvas">
+        <span />
+        <strong>{file[0]}</strong>
+        <small>Visual preview rendered in Nova Space.</small>
+      </div>
+    );
+  }
+
+  if (/MP3|Audio/.test(file[1])) {
+    return (
+      <div className="reader-waveform">
+        {[34, 58, 42, 76, 49, 88, 54, 69, 38, 61, 45, 72].map((height, index) => (
+          <i key={`${height}-${index}`} style={{ height: `${height}%` }} />
+        ))}
+      </div>
+    );
+  }
+
+  if (/Archive|zip/i.test(`${file[0]} ${file[1]}`)) {
+    return (
+      <div className="reader-package">
+        {["Workspace snapshot", "Project files", "Guard ledger", "App state"].map((item) => (
+          <span key={item}>{item}</span>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="reader-document">
+      <p>{fileContext(file)}</p>
+      <p>Nova extracted the useful context, linked it to the active space, and kept the original file available here.</p>
+      <p>Next actions can be summarized, pinned, or sent to Guard before any external sharing.</p>
+    </div>
+  );
+}
+
 export function MySpaceWindow({ system, systemActions, onClose, onMinimize, onFocus }: MySpaceWindowProps) {
   const [query, setQuery] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [openedFileName, setOpenedFileName] = useState<string | undefined>();
   const scopedFiles = useMemo(() => sectionFiles(system.files, system.activeFileSection), [system.activeFileSection, system.files]);
   const visibleFiles = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -162,6 +235,9 @@ export function MySpaceWindow({ system, systemActions, onClose, onMinimize, onFo
     return scopedFiles.filter((file) => file.join(" ").toLowerCase().includes(normalizedQuery));
   }, [scopedFiles, query]);
   const selectedFile = visibleFiles.find((file) => file[0] === system.activeFileName) ?? visibleFiles[0];
+  const openedFile = openedFileName ? system.files.find((file) => file[0] === openedFileName) : undefined;
+  const previewFile = openedFile ?? selectedFile;
+  const locationIsOpen = system.activeFileSection !== "My Space";
 
   function openSection(section: string) {
     const firstFile = sectionFiles(system.files, section)[0];
@@ -169,11 +245,18 @@ export function MySpaceWindow({ system, systemActions, onClose, onMinimize, onFo
     if (firstFile) {
       systemActions.selectFile(firstFile[0]);
     }
+    setOpenedFileName(undefined);
     setQuery("");
+  }
+
+  function openFile(file: NovaFile) {
+    systemActions.selectFile(file[0]);
+    setOpenedFileName(file[0]);
   }
 
   function addFile() {
     systemActions.addFile();
+    setOpenedFileName("Untitled_Nova_App.nova");
     setQuery("");
   }
 
@@ -241,29 +324,44 @@ export function MySpaceWindow({ system, systemActions, onClose, onMinimize, onFo
 
           <div className={cn("file-workspace", viewMode === "list" && "list-view")}>
             <section className="file-browser" aria-label="File browser">
-              <div className="section-heading-row">
-                <h3 className="section-title">Folders</h3>
-                <span>{scopedFiles.length} indexed</span>
-              </div>
-              <div className="folder-grid">
-                {folders.map((folder) => {
-                  const folderCount = sectionFiles(system.files, folder.name).length;
-                  const active = system.activeFileSection === folder.name;
-                  return (
-                    <button
-                      className={cn("folder-card", active && "active")}
-                      key={folder.name}
-                      type="button"
-                      onClick={() => openSection(folder.name)}
-                      aria-pressed={active}
-                    >
-                      <div className="folder-icon" />
-                      <strong>{folder.name}</strong>
-                      <span>{folderCount} items</span>
-                    </button>
-                  );
-                })}
-              </div>
+              {locationIsOpen ? (
+                <div className="open-location-card">
+                  <button className="compact-button" type="button" aria-label="Back to My Space" onClick={() => openSection("My Space")}>
+                    <ArrowLeft size={14} />
+                    My Space
+                  </button>
+                  <span>
+                    <strong>{system.activeFileSection}</strong>
+                    <small>{sectionDescriptions[system.activeFileSection] ?? sectionDescriptions["My Space"]}</small>
+                  </span>
+                </div>
+              ) : (
+                <>
+                  <div className="section-heading-row">
+                    <h3 className="section-title">Folders</h3>
+                    <span>{system.files.length} indexed</span>
+                  </div>
+                  <div className="folder-grid">
+                    {folders.map((folder) => {
+                      const folderCount = sectionFiles(system.files, folder.name).length;
+                      return (
+                        <button
+                          className="folder-card"
+                          key={folder.name}
+                          type="button"
+                          onClick={() => openSection(folder.name)}
+                          aria-label={`Open ${folder.name} folder`}
+                        >
+                          <div className="folder-icon" />
+                          <strong>{folder.name}</strong>
+                          <span>{folderCount} items</span>
+                          <em>Open</em>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
 
               <div className="section-heading-row">
                 <h3 className="section-title">{folderSections.includes(system.activeFileSection) ? `${system.activeFileSection} files` : system.activeFileSection}</h3>
@@ -274,11 +372,11 @@ export function MySpaceWindow({ system, systemActions, onClose, onMinimize, onFo
                   const selected = selectedFile?.[0] === file[0];
                   return (
                     <button
-                      className={cn("file-row", selected && "selected")}
+                      className={cn("file-row", selected && "selected", openedFileName === file[0] && "opened")}
                       key={file[0]}
                       type="button"
-                      onClick={() => systemActions.selectFile(file[0])}
-                      aria-label={`Preview ${file[0]}`}
+                      onClick={() => openFile(file)}
+                      aria-label={`Open ${file[0]}`}
                       aria-pressed={selected}
                     >
                       <span className="file-name">
@@ -287,7 +385,7 @@ export function MySpaceWindow({ system, systemActions, onClose, onMinimize, onFo
                       </span>
                       <span>{file[1]}</span>
                       <span>{file[2]}</span>
-                      <span>{file[3]}</span>
+                      <span>{openedFileName === file[0] ? "Open" : file[3]}</span>
                     </button>
                   );
                 })}
@@ -295,22 +393,31 @@ export function MySpaceWindow({ system, systemActions, onClose, onMinimize, onFo
               </div>
             </section>
 
-            {selectedFile ? (
-              <aside className="file-preview-panel" aria-label="File preview">
-                <div className="preview-file-orb">{fileIcon(selectedFile)}</div>
+            {previewFile ? (
+              <aside className={cn("file-preview-panel", openedFile && "file-reader-panel")} aria-label="File preview">
+                <div className="preview-panel-top">
+                  <div className="preview-file-orb">{fileIcon(previewFile)}</div>
+                  {openedFile ? (
+                    <button className="icon-button" type="button" aria-label={`Close ${openedFile[0]}`} onClick={() => setOpenedFileName(undefined)}>
+                      <X size={15} />
+                    </button>
+                  ) : null}
+                </div>
                 <span className="preview-state">
                   <ClipboardCheck size={13} />
-                  Active file
+                  {openedFile ? "Open file" : "Active file"}
                 </span>
-                <h3>{selectedFile[0]}</h3>
-                <p>{fileContext(selectedFile)}</p>
+                <h3>{previewFile[0]}</h3>
+                <p>{fileContext(previewFile)}</p>
 
                 <div className="preview-meta-grid">
-                  <span>Type<strong>{selectedFile[1]}</strong></span>
-                  <span>Modified<strong>{selectedFile[2]}</strong></span>
-                  <span>Size<strong>{selectedFile[3]}</strong></span>
+                  <span>Type<strong>{previewFile[1]}</strong></span>
+                  <span>Modified<strong>{previewFile[2]}</strong></span>
+                  <span>Size<strong>{previewFile[3]}</strong></span>
                   <span>Space<strong>{system.activeSpace}</strong></span>
                 </div>
+
+                {openedFile ? <div className="file-reader-surface">{fileReaderContent(openedFile)}</div> : null}
 
                 <div className="file-insight-card">
                   <Sparkles size={16} />
@@ -321,15 +428,21 @@ export function MySpaceWindow({ system, systemActions, onClose, onMinimize, onFo
                 </div>
 
                 <div className="preview-actions">
-                  <button className="primary-button" type="button" onClick={() => systemActions.summarizeFile(selectedFile[0])}>
+                  {!openedFile ? (
+                    <button className="primary-button" type="button" onClick={() => openFile(previewFile)}>
+                      <FileText size={15} />
+                      Open
+                    </button>
+                  ) : null}
+                  <button className={cn(!openedFile && "compact-button", openedFile && "primary-button")} type="button" onClick={() => systemActions.summarizeFile(previewFile[0])}>
                     <Sparkles size={15} />
                     Summarize
                   </button>
-                  <button className="compact-button" type="button" onClick={() => systemActions.pinFileToSpace(selectedFile[0])}>
+                  <button className="compact-button" type="button" onClick={() => systemActions.pinFileToSpace(previewFile[0])}>
                     <Pin size={14} />
                     Pin
                   </button>
-                  <button className="compact-button" type="button" onClick={() => systemActions.shareFile(selectedFile[0])}>
+                  <button className="compact-button" type="button" onClick={() => systemActions.shareFile(previewFile[0])}>
                     <ShieldCheck size={14} />
                     Guard share
                   </button>
