@@ -185,6 +185,19 @@ export const recentFiles: NovaFile[] = [
   ["Landscape_01.png", "PNG Image", "May 18, 2:33 PM", "5.7 MB"],
   ["Music_Draft.mp3", "MP3 Audio", "May 18, 9:15 AM", "7.8 MB"],
   ["Notes.txt", "Text Document", "May 17, 11:42 AM", "1.2 KB"],
+  ["Client_Roadmap.nova", "Nova Document", "May 16, 5:02 PM", "620 KB"],
+  ["Invoice_Template.xlsx", "Spreadsheet", "May 16, 1:38 PM", "84 KB"],
+  ["Founder_Metrics.xlsx", "Spreadsheet", "May 15, 6:24 PM", "146 KB"],
+  ["Brand_System.fig", "Design File", "May 15, 2:14 PM", "12.4 MB"],
+  ["Launch_Moodboard.png", "PNG Image", "May 14, 4:18 PM", "8.1 MB"],
+  ["Voice_Notes.mp3", "MP3 Audio", "May 14, 8:51 AM", "11.2 MB"],
+  ["Client_Call_Transcript.txt", "Text Document", "May 13, 7:32 PM", "18 KB"],
+  ["Shared_Brief.pdf", "PDF Document", "May 12, 3:42 PM", "2.7 MB"],
+  ["Data_Hub_Contacts.csv", "CSV Dataset", "May 12, 11:06 AM", "312 KB"],
+  ["Nova_Drive_Index.json", "JSON Index", "May 11, 9:22 AM", "48 KB"],
+  ["Automation_Logs.json", "JSON Index", "May 10, 8:20 PM", "96 KB"],
+  ["Archive_2025.zip", "Archive", "May 9, 4:03 PM", "86 MB"],
+  ["Backup_Snapshot.nova", "Nova Archive", "May 8, 2:55 PM", "34 MB"],
 ];
 
 export const aiProviders: AiProvider[] = [

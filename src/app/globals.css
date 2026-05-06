@@ -1049,6 +1049,18 @@ button {
   border-bottom: 1px solid rgba(84, 92, 132, 0.12);
 }
 
+.window-toolbar > div:first-child {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.section-context {
+  color: #737b99;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
 .search-line {
   display: flex;
   align-items: center;
@@ -1094,6 +1106,23 @@ button {
   font-size: 16px;
 }
 
+.section-heading-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.section-heading-row .section-title {
+  margin-bottom: 14px;
+}
+
+.section-heading-row span {
+  color: #7c86a5;
+  font-size: 11px;
+  font-weight: 700;
+}
+
 .folder-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(82px, 1fr));
@@ -1116,6 +1145,12 @@ button {
   transform: translateY(-2px);
   border-color: rgba(116, 103, 255, 0.28);
   background: rgba(255, 255, 255, 0.54);
+}
+
+.folder-card.active {
+  border-color: rgba(116, 103, 255, 0.52);
+  background: rgba(116, 103, 255, 0.15);
+  box-shadow: 0 16px 28px rgba(116, 103, 255, 0.15);
 }
 
 .folder-icon {
@@ -1248,6 +1283,12 @@ button {
   color: #727b99;
   font-size: 12px;
   line-height: 1.55;
+}
+
+.empty-preview {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .preview-meta-grid {

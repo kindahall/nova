@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Archive,
   Clock,
   ClipboardCheck,
   Database,
@@ -45,7 +46,78 @@ const sidebarItems = [
   { label: "Data Hub", icon: Database },
 ];
 
+const folderSections = folders.map((folder) => folder.name);
+const sectionDescriptions: Record<string, string> = {
+  "My Space": "Everything indexed for the current Nova workspace.",
+  Recent: "Latest files touched by Nova and the user.",
+  Starred: "Pinned files that should stay close to active missions.",
+  Shared: "Files queued for collaboration or Guard-approved sharing.",
+  Collections: "Grouped context packs for briefs, assets, and launch work.",
+  "Nova Drive": "Cloud-backed indexes and sync-ready workspace files.",
+  "Data Hub": "Datasets, spreadsheets, logs, and structured context.",
+  Work: "Client, planning, invoice, and roadmap material.",
+  Design: "Visual assets, brand systems, and moodboards.",
+  Media: "Audio, images, and creative source files.",
+  Docs: "Documents, notes, PDFs, and transcripts.",
+  Archive: "Backups and older snapshots kept out of the active flow.",
+};
+
+const starredFileNames = ["Nova_Concept.pdf", "Client_Roadmap.nova", "Founder_Metrics.xlsx", "Brand_System.fig"];
+const sharedFileNames = ["Shared_Brief.pdf", "Client_Call_Transcript.txt", "Invoice_Template.xlsx"];
+const collectionFileNames = ["Brand_System.fig", "Launch_Moodboard.png", "Project_Plan.nova", "Shared_Brief.pdf"];
+const novaDriveFileNames = ["Nova_Drive_Index.json", "Backup_Snapshot.nova", "Project_Plan.nova"];
+const dataHubFileNames = ["Data_Hub_Contacts.csv", "Automation_Logs.json", "Founder_Metrics.xlsx", "Invoice_Template.xlsx"];
+
+function orderedFiles(files: NovaFile[], fileNames: string[], include?: (file: NovaFile) => boolean) {
+  const byName = new Map(files.map((file) => [file[0], file]));
+  const pickedNames = new Set(fileNames);
+  const pickedFiles = fileNames.flatMap((fileName) => {
+    const file = byName.get(fileName);
+    return file ? [file] : [];
+  });
+  const extraFiles = include ? files.filter((file) => include(file) && !pickedNames.has(file[0])) : [];
+  return [...pickedFiles, ...extraFiles];
+}
+
+function sectionFiles(files: NovaFile[], section: string) {
+  switch (section) {
+    case "Recent":
+      return files.slice(0, 8);
+    case "Starred":
+      return orderedFiles(files, starredFileNames);
+    case "Shared":
+      return orderedFiles(files, sharedFileNames);
+    case "Collections":
+      return orderedFiles(files, collectionFileNames);
+    case "Nova Drive":
+      return orderedFiles(files, novaDriveFileNames, (file) => file[0].includes("Nova_Drive"));
+    case "Data Hub":
+      return orderedFiles(files, dataHubFileNames, (file) => /CSV|JSON|Spreadsheet/.test(file[1]));
+    case "Work":
+      return files.filter((file) => /Client|Invoice|Roadmap|Plan|Metrics|Brief|Nova_App/.test(file[0]));
+    case "Design":
+      return files.filter((file) => /PNG|Design/.test(file[1]) || /Brand|Moodboard|Landscape/.test(file[0]));
+    case "Media":
+      return files.filter((file) => /PNG|MP3|Audio|Image/.test(file[1]) || /Music|Voice|Landscape|Moodboard/.test(file[0]));
+    case "Docs":
+      return files.filter((file) => /PDF|Text|Document/.test(file[1]) || /Notes|Transcript/.test(file[0]));
+    case "Archive":
+      return files.filter((file) => /Archive|Backup|Snapshot|zip/i.test(`${file[0]} ${file[1]}`));
+    case "My Space":
+    default:
+      return files;
+  }
+}
+
 function fileIcon(file: NovaFile) {
+  if (/CSV|JSON|Spreadsheet/.test(file[1])) {
+    return <Database size={13} />;
+  }
+
+  if (/Archive|zip/i.test(`${file[0]} ${file[1]}`)) {
+    return <Archive size={13} />;
+  }
+
   if (file[1].includes("PNG")) {
     return <ImageIcon size={13} />;
   }
@@ -80,16 +152,25 @@ function fileContext(file: NovaFile) {
 export function MySpaceWindow({ system, systemActions, onClose, onMinimize, onFocus }: MySpaceWindowProps) {
   const [query, setQuery] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const scopedFiles = useMemo(() => sectionFiles(system.files, system.activeFileSection), [system.activeFileSection, system.files]);
   const visibleFiles = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     if (!normalizedQuery) {
-      return system.files;
+      return scopedFiles;
     }
 
-    return system.files.filter((file) => file.join(" ").toLowerCase().includes(normalizedQuery));
-  }, [system.files, query]);
-  const selectedFile =
-    visibleFiles.find((file) => file[0] === system.activeFileName) ?? visibleFiles[0] ?? system.files[0];
+    return scopedFiles.filter((file) => file.join(" ").toLowerCase().includes(normalizedQuery));
+  }, [scopedFiles, query]);
+  const selectedFile = visibleFiles.find((file) => file[0] === system.activeFileName) ?? visibleFiles[0];
+
+  function openSection(section: string) {
+    const firstFile = sectionFiles(system.files, section)[0];
+    systemActions.setFileSection(section);
+    if (firstFile) {
+      systemActions.selectFile(firstFile[0]);
+    }
+    setQuery("");
+  }
 
   function addFile() {
     systemActions.addFile();
@@ -117,7 +198,7 @@ export function MySpaceWindow({ system, systemActions, onClose, onMinimize, onFo
                 className={cn("sidebar-item", system.activeFileSection === item.label && "active")}
                 key={item.label}
                 type="button"
-                onClick={() => systemActions.setFileSection(item.label)}
+                onClick={() => openSection(item.label)}
                 aria-pressed={system.activeFileSection === item.label}
               >
                 <Icon size={15} /> {item.label}
@@ -130,6 +211,7 @@ export function MySpaceWindow({ system, systemActions, onClose, onMinimize, onFo
           <div className="window-toolbar">
             <div>
               <strong>Good morning, Alex.</strong>
+              <span className="section-context">{sectionDescriptions[system.activeFileSection] ?? sectionDescriptions["My Space"]}</span>
               <label className="search-line">
                 <Search size={14} />
                 <input
@@ -159,18 +241,34 @@ export function MySpaceWindow({ system, systemActions, onClose, onMinimize, onFo
 
           <div className={cn("file-workspace", viewMode === "list" && "list-view")}>
             <section className="file-browser" aria-label="File browser">
-              <h3 className="section-title">Folders</h3>
+              <div className="section-heading-row">
+                <h3 className="section-title">Folders</h3>
+                <span>{scopedFiles.length} indexed</span>
+              </div>
               <div className="folder-grid">
-                {folders.map((folder) => (
-                  <button className="folder-card" key={folder.name} type="button" onClick={() => systemActions.setFileSection(folder.name)}>
-                    <div className="folder-icon" />
-                    <strong>{folder.name}</strong>
-                    <span>{folder.count}</span>
-                  </button>
-                ))}
+                {folders.map((folder) => {
+                  const folderCount = sectionFiles(system.files, folder.name).length;
+                  const active = system.activeFileSection === folder.name;
+                  return (
+                    <button
+                      className={cn("folder-card", active && "active")}
+                      key={folder.name}
+                      type="button"
+                      onClick={() => openSection(folder.name)}
+                      aria-pressed={active}
+                    >
+                      <div className="folder-icon" />
+                      <strong>{folder.name}</strong>
+                      <span>{folderCount} items</span>
+                    </button>
+                  );
+                })}
               </div>
 
-              <h3 className="section-title">Recent files</h3>
+              <div className="section-heading-row">
+                <h3 className="section-title">{folderSections.includes(system.activeFileSection) ? `${system.activeFileSection} files` : system.activeFileSection}</h3>
+                <span>{visibleFiles.length} shown</span>
+              </div>
               <div className="file-list">
                 {visibleFiles.map((file) => {
                   const selected = selectedFile?.[0] === file[0];
@@ -193,7 +291,7 @@ export function MySpaceWindow({ system, systemActions, onClose, onMinimize, onFo
                     </button>
                   );
                 })}
-                {visibleFiles.length === 0 ? <div className="file-row empty">No files match this search.</div> : null}
+                {visibleFiles.length === 0 ? <div className="file-row empty">No files match this search in {system.activeFileSection}.</div> : null}
               </div>
             </section>
 
@@ -245,7 +343,16 @@ export function MySpaceWindow({ system, systemActions, onClose, onMinimize, onFo
                   <span>{system.selectedProvider}</span>
                 </div>
               </aside>
-            ) : null}
+            ) : (
+              <aside className="file-preview-panel empty-preview" aria-label="File preview">
+                <div className="preview-file-orb">
+                  <Search size={16} />
+                </div>
+                <span className="preview-state">No active file</span>
+                <h3>No matching file</h3>
+                <p>Clear the search or open another section to preview a file and use Nova actions.</p>
+              </aside>
+            )}
           </div>
         </main>
       </div>

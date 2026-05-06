@@ -122,6 +122,15 @@ export type NovaSystemActions = {
 
 const initialWindows: WindowKey[] = ["personalize"];
 
+function mergeFiles(files: NovaFile[] | undefined) {
+  if (!files?.length) {
+    return defaultNovaSystemState.files;
+  }
+
+  const fileNames = new Set(files.map((file) => file[0]));
+  return [...files, ...defaultNovaSystemState.files.filter((file) => !fileNames.has(file[0]))];
+}
+
 export const defaultNovaSystemState: NovaSystemState = {
   stateVersion: 2,
   openWindows: initialWindows,
@@ -214,7 +223,7 @@ export function mergeNovaSystemState(value: unknown): NovaSystemState {
     },
     minimizedWindows: Array.isArray(state.minimizedWindows) ? state.minimizedWindows : defaultNovaSystemState.minimizedWindows,
     windowSizes: state.windowSizes ?? defaultNovaSystemState.windowSizes,
-    files: state.files?.length ? state.files : defaultNovaSystemState.files,
+    files: mergeFiles(state.files),
     openWindows: isLegacyDefaultWindowStack ? defaultNovaSystemState.openWindows : incomingOpenWindows,
     aiProviders: state.aiProviders?.length ? state.aiProviders : defaultNovaSystemState.aiProviders,
     guardPermissions: state.guardPermissions?.length ? state.guardPermissions : defaultNovaSystemState.guardPermissions,
