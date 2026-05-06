@@ -33,8 +33,10 @@ export function OfflineModePanel({ system, systemActions, onClose, onFocus }: Of
       icon={<CloudOff size={18} />}
       className="window--offline-mode"
       tone="dark"
+      windowSize={system.windowSizes["offline-mode"]}
       onClose={onClose}
       onFocus={onFocus}
+      onResizeEnd={(size) => systemActions.setWindowSize("offline-mode", size)}
     >
       <div className="cards-grid">
         <div className="glass-card">

@@ -66,8 +66,10 @@ export function NovaStoreWindow({ system, systemActions, onClose, onFocus }: Nov
       icon={<Store size={18} />}
       className="window--nova-store"
       tone="dark"
+      windowSize={system.windowSizes["nova-store"]}
       onClose={onClose}
       onFocus={onFocus}
+      onResizeEnd={(size) => systemActions.setWindowSize("nova-store", size)}
     >
       <div className="window-toolbar" style={{ borderBottomColor: "rgba(255,255,255,0.12)" }}>
         <label className="search-line" style={{ color: "rgba(255,255,255,0.68)" }}>

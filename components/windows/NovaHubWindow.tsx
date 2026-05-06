@@ -25,9 +25,11 @@ export function NovaHubWindow({ system, systemActions, onClose, onFocus, onCreat
       icon={<Sparkles size={18} />}
       className="window--nova-hub"
       tone="dark"
+      windowSize={system.windowSizes["nova-hub"]}
       onClose={onClose}
       onFocus={onFocus}
       onAssist={systemActions.runHubPulse}
+      onResizeEnd={(size) => systemActions.setWindowSize("nova-hub", size)}
     >
       <div className="cards-grid">
         <button className="glass-card action-card" type="button" onClick={systemActions.runHubPulse}>

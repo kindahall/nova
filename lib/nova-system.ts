@@ -15,6 +15,18 @@ export type { NovaSpace } from "@/data/nova";
 
 export type NovaOfflineStatus = "offline" | "checking" | "ready";
 export type NovaThemeMode = "Light" | "Dim" | "Focus";
+export type NovaDisplayMode = "Desktop" | "Focus Wall" | "Presentation";
+export type NovaFontScale = "Small" | "Standard" | "Large";
+export type NovaInterfaceDensity = "Minimal" | "Balanced" | "Dense";
+export type NovaPersonalizePanel =
+  | "Look & Feel"
+  | "Themes"
+  | "Colors"
+  | "Fonts"
+  | "Layout"
+  | "Sound"
+  | "Privacy"
+  | "About";
 
 export type NovaTheme = {
   vibe: string;
@@ -31,8 +43,14 @@ export type NovaActivityEntry = {
   tone: "info" | "success" | "guard" | "system";
 };
 
+export type NovaWindowSize = {
+  width: number;
+  height: number;
+};
+
 export type NovaSystemState = {
   openWindows: WindowKey[];
+  windowSizes: Partial<Record<WindowKey, NovaWindowSize>>;
   files: NovaFile[];
   activeFileSection: string;
   activeFileName: string;
@@ -46,6 +64,12 @@ export type NovaSystemState = {
   spaces: NovaSpace[];
   activeSpace: string;
   theme: NovaTheme;
+  personalizePanel: NovaPersonalizePanel;
+  brightness: number;
+  displayMode: NovaDisplayMode;
+  fontScale: NovaFontScale;
+  interfaceDensity: NovaInterfaceDensity;
+  soundEnabled: boolean;
   offlineStatus: NovaOfflineStatus;
   hubActions: number;
   hubSignal: string;
@@ -61,6 +85,13 @@ export type NovaSystemActions = {
   shareFile: (fileName: string) => void;
   pinFileToSpace: (fileName: string) => void;
   setTheme: (theme: Partial<NovaTheme>) => void;
+  setPersonalizePanel: (panel: NovaPersonalizePanel) => void;
+  setBrightness: (brightness: number) => void;
+  cycleDisplayMode: () => void;
+  setFontScale: (scale: NovaFontScale) => void;
+  setInterfaceDensity: (density: NovaInterfaceDensity) => void;
+  setSoundEnabled: (enabled: boolean) => void;
+  setWindowSize: (windowKey: WindowKey, size: NovaWindowSize) => void;
   selectProvider: (provider: string) => void;
   toggleSelectedProvider: () => void;
   toggleGuardPermission: (permission: string) => void;
@@ -78,6 +109,7 @@ const initialWindows: WindowKey[] = ["my-space", "personalize"];
 
 export const defaultNovaSystemState: NovaSystemState = {
   openWindows: initialWindows,
+  windowSizes: {},
   files: recentFiles,
   activeFileSection: "My Space",
   activeFileName: recentFiles[0][0],
@@ -96,6 +128,12 @@ export const defaultNovaSystemState: NovaSystemState = {
     mode: "Light",
     transparency: 34,
   },
+  personalizePanel: "Look & Feel",
+  brightness: 74,
+  displayMode: "Desktop",
+  fontScale: "Standard",
+  interfaceDensity: "Balanced",
+  soundEnabled: true,
   offlineStatus: "offline",
   hubActions: 12,
   hubSignal: "System is calm. Builder Studio is still the active mission.",
@@ -139,6 +177,7 @@ export function mergeNovaSystemState(value: unknown): NovaSystemState {
       ...defaultNovaSystemState.theme,
       ...(state.theme ?? {}),
     },
+    windowSizes: state.windowSizes ?? defaultNovaSystemState.windowSizes,
     files: state.files?.length ? state.files : defaultNovaSystemState.files,
     openWindows: state.openWindows?.length ? state.openWindows : defaultNovaSystemState.openWindows,
     aiProviders: state.aiProviders?.length ? state.aiProviders : defaultNovaSystemState.aiProviders,

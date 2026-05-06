@@ -46,6 +46,8 @@ button {
 .nova-root {
   --nova-accent: #7467ff;
   --nova-glass-alpha: 0.76;
+  --nova-font-scale: 1;
+  --nova-brightness-shadow: 0;
   position: relative;
   min-height: 100svh;
   overflow: hidden;
@@ -137,6 +139,26 @@ button {
   z-index: 1;
   min-height: 100svh;
   padding: 28px 30px 34px 116px;
+  font-size: calc(16px * var(--nova-font-scale));
+}
+
+.desktop-stage::after {
+  content: "";
+  position: fixed;
+  z-index: 30;
+  inset: 0;
+  background: rgba(2, 7, 28, var(--nova-brightness-shadow));
+  pointer-events: none;
+  transition: background 220ms ease;
+}
+
+.nova-root.display-focus-wall .desktop-icons {
+  opacity: 0.42;
+}
+
+.nova-root.display-presentation .desktop-icons,
+.nova-root.display-presentation .notification-stack {
+  opacity: 0.24;
 }
 
 .nova-rail {
@@ -261,7 +283,7 @@ button {
   width: 5px;
   height: 82px;
   border-radius: 999px;
-  background: linear-gradient(180deg, #f7f3ff 0 42%, rgba(255, 255, 255, 0.28) 42% 100%);
+  background: linear-gradient(180deg, #f7f3ff 0 var(--brightness-level, 74%), rgba(255, 255, 255, 0.28) var(--brightness-level, 74%) 100%);
 }
 
 .top-command {
@@ -475,6 +497,8 @@ button {
 .window-frame {
   position: absolute;
   overflow: clip;
+  min-width: 360px;
+  min-height: 260px;
   border: 1px solid rgba(255, 255, 255, 0.58);
   border-radius: 22px;
   background: rgba(247, 249, 255, var(--nova-glass-alpha));
@@ -575,7 +599,41 @@ button {
 
 .window-content {
   height: calc(100% - 58px);
+  min-height: 0;
+  overflow: auto;
+  scrollbar-gutter: stable;
   padding: 6px 22px 22px;
+}
+
+.window-resize-handle {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  z-index: 3;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  color: currentColor;
+  background: rgba(255, 255, 255, 0.16);
+  opacity: 0;
+  cursor: nwse-resize;
+  transition: opacity 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.window-frame:hover .window-resize-handle,
+.window-resize-handle:focus-visible {
+  opacity: 0.82;
+}
+
+.window-resize-handle:hover {
+  background: rgba(255, 255, 255, 0.32);
+  transform: scale(1.04);
+}
+
+.window-frame.command .window-resize-handle {
+  display: none;
 }
 
 .window--my-space {
@@ -636,6 +694,8 @@ button {
   align-items: center;
   gap: 10px;
   max-width: calc(100vw - 220px);
+  overflow-x: auto;
+  overflow-y: hidden;
   padding: 12px 14px;
   border: 1px solid rgba(255, 255, 255, 0.32);
   border-radius: 30px;
@@ -645,7 +705,9 @@ button {
 }
 
 .shelf-button {
-  min-width: 122px;
+  min-width: 0;
+  max-width: 142px;
+  flex: 0 1 132px;
   height: 54px;
   display: grid;
   grid-template-columns: 42px 1fr;
@@ -659,6 +721,8 @@ button {
 
 .shelf-button.icon-only {
   min-width: 54px;
+  max-width: 54px;
+  flex-basis: 54px;
   grid-template-columns: 1fr;
   padding: 6px;
 }
@@ -670,7 +734,7 @@ button {
 }
 
 .shelf-button.running {
-  min-width: 112px;
+  max-width: 132px;
   background: rgba(84, 211, 255, 0.18);
 }
 
@@ -684,16 +748,27 @@ button {
 }
 
 .shelf-text {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
   display: grid;
   gap: 2px;
   text-align: left;
 }
 
 .shelf-text strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 13px;
 }
 
 .shelf-text span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: rgba(255, 255, 255, 0.66);
   font-size: 11px;
 }
@@ -857,6 +932,7 @@ button {
 }
 
 .sidebar-item {
+  width: 100%;
   display: flex;
   align-items: center;
   gap: 9px;
@@ -866,6 +942,11 @@ button {
   font-size: 13px;
   background: transparent;
   text-align: left;
+}
+
+.sidebar-item:hover {
+  color: #4b45c8;
+  background: rgba(110, 97, 255, 0.09);
 }
 
 .sidebar-item.active {
@@ -1194,6 +1275,13 @@ button {
   height: 100%;
 }
 
+.personalize-panel {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .vibe-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -1311,6 +1399,75 @@ button {
 .range-input {
   width: 100%;
   accent-color: #7568ff;
+}
+
+.status-card,
+.wide-action-button,
+.settings-row {
+  border: 1px solid rgba(111, 105, 193, 0.14);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.34);
+  color: #4b5475;
+  box-shadow: 0 12px 30px rgba(20, 28, 78, 0.1);
+}
+
+.status-card {
+  display: grid;
+  gap: 5px;
+  padding: 14px;
+}
+
+.status-card strong,
+.wide-action-button strong,
+.settings-row strong {
+  color: #273056;
+}
+
+.status-card span,
+.wide-action-button small,
+.settings-row small {
+  color: #68708d;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.wide-action-button,
+.settings-row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 13px;
+  text-align: left;
+}
+
+.wide-action-button {
+  grid-template-columns: auto 1fr;
+}
+
+.wide-action-button:hover,
+.settings-row:hover {
+  transform: translateY(-1px);
+  border-color: rgba(116, 103, 255, 0.42);
+  box-shadow: 0 18px 42px rgba(20, 28, 78, 0.15);
+}
+
+.wide-action-button.danger {
+  border-color: rgba(255, 125, 169, 0.28);
+}
+
+.control-list {
+  display: grid;
+  gap: 10px;
+}
+
+.nova-root.density-minimal .window-content {
+  padding: 8px 28px 28px;
+}
+
+.nova-root.density-dense .window-content {
+  padding: 4px 16px 16px;
 }
 
 .cards-grid {

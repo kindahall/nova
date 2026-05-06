@@ -177,7 +177,13 @@ export function DesktopShell({
     <main className="desktop-stage">
       <div className="aurora-ribbon" />
       <div className="star-field" />
-      <NovaRail activeWindows={activeWindows} onOpen={onOpen} onCommand={onOpenCommand} />
+      <NovaRail
+        activeWindows={activeWindows}
+        system={system}
+        systemActions={systemActions}
+        onOpen={onOpen}
+        onCommand={onOpenCommand}
+      />
       <TopCommandBar onOpen={onOpenCommand} />
       <SystemStatus system={system} onOpenActivity={() => onOpen("activity-center")} />
       <NotificationStack activityLog={system.activityLog} onOpenActivity={() => onOpen("activity-center")} />

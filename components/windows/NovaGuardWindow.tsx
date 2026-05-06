@@ -23,8 +23,10 @@ export function NovaGuardWindow({ system, systemActions, onClose, onFocus }: Nov
       icon={<ShieldCheck size={18} />}
       className="window--nova-guard"
       tone="dark"
+      windowSize={system.windowSizes["nova-guard"]}
       onClose={onClose}
       onFocus={onFocus}
+      onResizeEnd={(size) => systemActions.setWindowSize("nova-guard", size)}
     >
       <div className="cards-grid">
         <div className="glass-card">

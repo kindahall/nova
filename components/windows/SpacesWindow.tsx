@@ -22,8 +22,10 @@ export function SpacesWindow({ system, systemActions, onClose, onFocus }: Spaces
       icon={<Boxes size={18} />}
       className="window--spaces"
       tone="dark"
+      windowSize={system.windowSizes.spaces}
       onClose={onClose}
       onFocus={onFocus}
+      onResizeEnd={(size) => systemActions.setWindowSize("spaces", size)}
     >
       <div className="cards-grid">
         <div className="glass-card">

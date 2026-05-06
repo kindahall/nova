@@ -19,3 +19,4 @@ playwright-report/
 coverage/
 
 *.tsbuildinfo
+.nova-runtime/

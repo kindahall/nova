@@ -123,8 +123,10 @@ export function GeneratedCrmAppWindow({ system, systemActions, onClose, onFocus 
       icon={<LayoutDashboard size={18} />}
       className="window--crm-app"
       tone="dark"
+      windowSize={system.windowSizes["crm-app"]}
       onClose={onClose}
       onFocus={onFocus}
+      onResizeEnd={(size) => systemActions.setWindowSize("crm-app", size)}
     >
       <div className="crm-layout">
         <aside className="crm-nav">

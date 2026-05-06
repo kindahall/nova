@@ -37,9 +37,11 @@ export function ActivityCenterWindow({ system, systemActions, onOpenWindow, onCl
       icon={<Bell size={18} />}
       className="window--activity-center"
       tone="dark"
+      windowSize={system.windowSizes["activity-center"]}
       onClose={onClose}
       onFocus={onFocus}
       onAssist={systemActions.runHubPulse}
+      onResizeEnd={(size) => systemActions.setWindowSize("activity-center", size)}
     >
       <div className="cards-grid">
         <button className="glass-card action-card" type="button" onClick={() => onOpenWindow("my-space")}>

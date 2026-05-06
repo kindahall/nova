@@ -23,8 +23,10 @@ export function AiCenterWindow({ system, systemActions, onClose, onFocus }: AiCe
       icon={<BrainCircuit size={18} />}
       className="window--ai-center"
       tone="dark"
+      windowSize={system.windowSizes["ai-center"]}
       onClose={onClose}
       onFocus={onFocus}
+      onResizeEnd={(size) => systemActions.setWindowSize("ai-center", size)}
     >
       <div className="cards-grid">
         <div className="glass-card">

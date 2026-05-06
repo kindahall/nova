@@ -8,7 +8,11 @@ import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
 import {
   defaultNovaSystemState,
   mergeNovaSystemState,
+  type NovaDisplayMode,
+  type NovaFontScale,
+  type NovaInterfaceDensity,
   type NovaOfflineStatus,
+  type NovaPersonalizePanel,
   type NovaSpace,
   type NovaSystemActions,
   type NovaSystemState,
@@ -17,10 +21,12 @@ import {
 
 const STORAGE_KEY = "nova-os-onboarding-complete";
 const SYSTEM_STORAGE_KEY = "nova-os-system-state";
+const SYSTEM_API = "/api/nova-system";
 const STORAGE_EVENT = "nova-os-onboarding-changed";
 const SYSTEM_STORAGE_EVENT = "nova-os-system-changed";
 let cachedSystemRaw = "";
 let cachedSystemSnapshot = defaultNovaSystemState;
+let persistTimer: number | undefined;
 
 function subscribeToOnboarding(callback: () => void) {
   if (typeof window === "undefined") {
@@ -83,9 +89,34 @@ function getSystemSnapshot(): NovaSystemState {
   return cachedSystemSnapshot;
 }
 
-function writeSystemSnapshot(system: NovaSystemState) {
-  window.localStorage.setItem(SYSTEM_STORAGE_KEY, JSON.stringify(system));
+function persistSystemSnapshot(system: NovaSystemState) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  if (persistTimer) {
+    window.clearTimeout(persistTimer);
+  }
+
+  persistTimer = window.setTimeout(() => {
+    fetch(SYSTEM_API, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ state: system }),
+    }).catch(() => {
+      // The desktop stays local-first if the local API is unavailable.
+    });
+  }, 120);
+}
+
+function writeSystemSnapshot(system: NovaSystemState, options: { persist?: boolean } = {}) {
+  const nextSystem = mergeNovaSystemState(system);
+  window.localStorage.setItem(SYSTEM_STORAGE_KEY, JSON.stringify(nextSystem));
   window.dispatchEvent(new Event(SYSTEM_STORAGE_EVENT));
+
+  if (options.persist !== false) {
+    persistSystemSnapshot(nextSystem);
+  }
 }
 
 function createActivity(title: string, body: string, tone: NovaSystemState["activityLog"][number]["tone"] = "info") {
@@ -112,13 +143,46 @@ export function NovaOSApp() {
   const system = useSyncExternalStore(subscribeToSystem, getSystemSnapshot, () => defaultNovaSystemState);
   const [commandOpen, setCommandOpen] = useState(false);
   const [switcherOpen, setSwitcherOpen] = useState(false);
+  const displayClass = system.displayMode.toLowerCase().replaceAll(" ", "-");
+  const densityClass = system.interfaceDensity.toLowerCase();
+  const fontScale = system.fontScale === "Large" ? "1.04" : system.fontScale === "Small" ? "0.96" : "1";
+  const brightnessShadow = `${Math.max(0, 100 - system.brightness) / 170}`;
   const rootStyle = {
     "--nova-accent": system.theme.accent,
     "--nova-glass-alpha": `${0.52 + (system.theme.transparency / 100) * 0.36}`,
+    "--nova-font-scale": fontScale,
+    "--nova-brightness-shadow": brightnessShadow,
   } as CSSProperties;
 
   const updateSystem = useCallback((updater: (current: NovaSystemState) => NovaSystemState) => {
     writeSystemSnapshot(updater(getSystemSnapshot()));
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    fetch(SYSTEM_API)
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload: { source?: string; state?: unknown } | null) => {
+        if (!active || !payload?.state) {
+          return;
+        }
+
+        const hasLocalState = Boolean(window.localStorage.getItem(SYSTEM_STORAGE_KEY));
+        if (payload.source === "runtime" || !hasLocalState) {
+          writeSystemSnapshot(mergeNovaSystemState(payload.state), { persist: false });
+          return;
+        }
+
+        persistSystemSnapshot(getSystemSnapshot());
+      })
+      .catch(() => {
+        persistSystemSnapshot(getSystemSnapshot());
+      });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   function completeOnboarding() {
@@ -300,11 +364,79 @@ export function NovaOSApp() {
       });
     },
     setTheme(theme: Partial<NovaTheme>) {
+      updateSystem((current) => {
+        const changeLabel = theme.vibe ?? theme.mode ?? (theme.accent ? "a new accent" : undefined);
+        return {
+          ...current,
+          theme: { ...current.theme, ...theme },
+          hubSignal: changeLabel
+            ? `Personalization updated: ${changeLabel}.`
+            : `Glass transparency changed to ${theme.transparency ?? current.theme.transparency}%.`,
+          activityLog: changeLabel
+            ? pushActivity(current, "Personalization updated", `Nova theme changed to ${changeLabel}.`)
+            : current.activityLog,
+        };
+      });
+    },
+    setPersonalizePanel(panel: NovaPersonalizePanel) {
       updateSystem((current) => ({
         ...current,
-        theme: { ...current.theme, ...theme },
-        hubSignal: `Personalization updated: ${theme.vibe ?? theme.mode ?? "accent changed"}.`,
-        activityLog: pushActivity(current, "Personalization updated", `Nova theme changed to ${theme.vibe ?? theme.mode ?? "a new accent"}.`),
+        personalizePanel: panel,
+        hubSignal: `Personalize opened ${panel}.`,
+      }));
+    },
+    setBrightness(brightness: number) {
+      const nextBrightness = Math.min(100, Math.max(20, Math.round(brightness)));
+      updateSystem((current) => ({
+        ...current,
+        brightness: nextBrightness,
+        hubSignal: `Display brightness set to ${nextBrightness}%.`,
+        activityLog: pushActivity(current, "Display adjusted", `Brightness changed to ${nextBrightness}%.`, "system"),
+      }));
+    },
+    cycleDisplayMode() {
+      const modes: NovaDisplayMode[] = ["Desktop", "Focus Wall", "Presentation"];
+      updateSystem((current) => {
+        const nextMode = modes[(modes.indexOf(current.displayMode) + 1) % modes.length];
+        return {
+          ...current,
+          displayMode: nextMode,
+          hubSignal: `Display mode switched to ${nextMode}.`,
+          activityLog: pushActivity(current, "Display mode changed", `Nova is now in ${nextMode} mode.`, "system"),
+        };
+      });
+    },
+    setFontScale(scale: NovaFontScale) {
+      updateSystem((current) => ({
+        ...current,
+        fontScale: scale,
+        hubSignal: `Interface text scale changed to ${scale}.`,
+        activityLog: pushActivity(current, "Font scale updated", `Nova text scale is now ${scale}.`),
+      }));
+    },
+    setInterfaceDensity(density: NovaInterfaceDensity) {
+      updateSystem((current) => ({
+        ...current,
+        interfaceDensity: density,
+        hubSignal: `Interface density changed to ${density}.`,
+        activityLog: pushActivity(current, "Layout density updated", `Nova windows now use ${density} density.`),
+      }));
+    },
+    setSoundEnabled(enabled: boolean) {
+      updateSystem((current) => ({
+        ...current,
+        soundEnabled: enabled,
+        hubSignal: `System sound feedback ${enabled ? "enabled" : "muted"}.`,
+        activityLog: pushActivity(current, "Sound feedback changed", `System feedback is now ${enabled ? "on" : "muted"}.`),
+      }));
+    },
+    setWindowSize(windowKey, size) {
+      updateSystem((current) => ({
+        ...current,
+        windowSizes: {
+          ...current.windowSizes,
+          [windowKey]: size,
+        },
       }));
     },
     selectProvider(provider: string) {
@@ -419,7 +551,10 @@ export function NovaOSApp() {
   };
 
   return (
-    <div className={`nova-root vibe-${system.theme.vibe.toLowerCase()} mode-${system.theme.mode.toLowerCase()}`} style={rootStyle}>
+    <div
+      className={`nova-root vibe-${system.theme.vibe.toLowerCase()} mode-${system.theme.mode.toLowerCase()} display-${displayClass} density-${densityClass}`}
+      style={rootStyle}
+    >
       {onboardingComplete ? (
         <DesktopShell
           system={system}

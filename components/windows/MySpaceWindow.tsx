@@ -99,8 +99,10 @@ export function MySpaceWindow({ system, systemActions, onClose, onFocus }: MySpa
       subtitle="Explorer"
       icon={<Home size={18} />}
       className="window--my-space light-panel"
+      windowSize={system.windowSizes["my-space"]}
       onClose={onClose}
       onFocus={onFocus}
+      onResizeEnd={(size) => systemActions.setWindowSize("my-space", size)}
     >
       <div className="split-window">
         <aside className="window-sidebar">
