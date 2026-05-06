@@ -541,11 +541,13 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               <FittedOnboardingTitle title={step.title} />
               <p>{step.body}</p>
               {renderControls()}
-              <div className="setup-memory" aria-label="Setup memory">
-                {memoryChips(setup).map((chip) => (
-                  <span key={chip}>{chip}</span>
-                ))}
-              </div>
+              {index < 11 ? (
+                <div className="setup-memory" aria-label="Setup memory">
+                  {memoryChips(setup).map((chip) => (
+                    <span key={chip}>{chip}</span>
+                  ))}
+                </div>
+              ) : null}
             </motion.div>
           </AnimatePresence>
 
@@ -578,14 +580,18 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               exit={{ opacity: 0, scale: 0.98 }}
               transition={{ duration: 0.28 }}
             >
-              <Image
-                src={step.reference}
-                alt=""
-                fill
-                priority={index === 0}
-                sizes="(max-width: 820px) 100vw, 52vw"
-                className="reference-image"
-              />
+              {index === 1 ? (
+                <AiMeshPreview setup={setup} />
+              ) : (
+                <Image
+                  src={step.reference}
+                  alt=""
+                  fill
+                  priority={index === 0}
+                  sizes="(max-width: 820px) 100vw, 52vw"
+                  className="reference-image"
+                />
+              )}
               <LiveBadges index={index} setup={setup} bootIndex={bootIndex} />
             </motion.div>
           </AnimatePresence>
@@ -654,6 +660,40 @@ function MiniShelf({ apps, compact = false }: { apps: string[]; compact?: boolea
   );
 }
 
+function AiMeshPreview({ setup }: { setup: SetupState }) {
+  return (
+    <div className="ai-mesh-preview">
+      <span className="preview-step-label">Step 02 of 14</span>
+      <Sparkles size={22} />
+      <h3>Connect your intelligences.</h3>
+      <p>Nova links models into one command layer and keeps local AI available for private tasks.</p>
+      <div className="ai-orbit">
+        {aiNames.map((ai, aiIndex) => {
+          const active = setup.connectedAis[ai];
+          return (
+            <motion.span
+              className={cn(active && "active")}
+              key={ai}
+              initial={{ opacity: 0, scale: 0.86 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: aiIndex * 0.05 }}
+            >
+              <Bot size={18} />
+              {ai}
+            </motion.span>
+          );
+        })}
+      </div>
+      <div className="ai-route-card">
+        <strong>{connectedCount(setup)} AIs connected</strong>
+        <span>Assistant: {setup.roles.Assistant}</span>
+        <span>Builder: {setup.roles["App Builder"]}</span>
+        <span>Private: {setup.roles["Private Tasks"]}</span>
+      </div>
+    </div>
+  );
+}
+
 function ReviewSummary({ setup, onJump }: { setup: SetupState; onJump: (index: number) => void }) {
   const rows = [
     { label: "Intelligences", value: `${connectedCount(setup)} connected`, step: 1, icon: <Bot size={16} /> },
@@ -715,7 +755,12 @@ function LiveBadges({ index, setup, bootIndex }: { index: number; setup: SetupSt
 }
 
 function PreviewLogs({ index, setup, bootIndex }: { index: number; setup: SetupState; bootIndex: number }) {
-  const logs = index === 12 ? bootSteps.slice(0, bootIndex + 1) : memoryChips(setup);
+  const logs =
+    index === 12
+      ? bootSteps.slice(0, bootIndex + 1)
+      : index === 13
+        ? ["Desktop shell ready", "Nova Command ready", "Guard visible"]
+        : memoryChips(setup);
 
   return (
     <div className="preview-logs">
