@@ -6,7 +6,7 @@ import { useState } from "react";
 import type { CSSProperties, MouseEvent, PointerEvent, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import type { WindowKey } from "@/data/nova";
-import type { NovaWindowSize } from "@/lib/nova-system";
+import type { NovaWindowLayout, NovaWindowSize } from "@/lib/nova-system";
 
 type WindowFrameProps = {
   title: string;
@@ -15,6 +15,9 @@ type WindowFrameProps = {
   className?: string;
   windowKey?: WindowKey;
   windowSize?: NovaWindowSize;
+  windowLayout?: NovaWindowLayout;
+  contextKind?: "file" | "window";
+  contextId?: string;
   tone?: "light" | "dark" | "command";
   children: ReactNode;
   onClose?: () => void;
@@ -31,6 +34,9 @@ export function WindowFrame({
   className,
   windowKey,
   windowSize,
+  windowLayout,
+  contextKind,
+  contextId,
   tone = "light",
   children,
   onClose,
@@ -92,8 +98,12 @@ export function WindowFrame({
     window.addEventListener("pointerup", handlePointerUp, { once: true });
   }
 
-  const effectiveSize = draftSize ?? windowSize;
+  const effectiveSize = draftSize ?? windowSize ?? windowLayout;
+  const layoutStyle = windowLayout ? { left: windowLayout.x, top: windowLayout.y } : undefined;
   const sizeStyle = effectiveSize ? ({ width: effectiveSize.width, height: effectiveSize.height } as CSSProperties) : undefined;
+  const frameStyle = { ...layoutStyle, ...sizeStyle } as CSSProperties;
+  const resolvedContextKind = contextKind ?? (windowKey ? "window" : undefined);
+  const resolvedContextId = contextId ?? windowKey;
 
   function toggleMaximize(event: MouseEvent<HTMLButtonElement>) {
     stopWindowAction(event);
@@ -144,9 +154,9 @@ export function WindowFrame({
   return (
     <motion.section
       className={cn("window-frame", tone === "dark" && "dark", tone === "command" && "command", className)}
-      style={sizeStyle}
-      data-context-kind={windowKey ? "window" : undefined}
-      data-context-id={windowKey}
+      style={frameStyle}
+      data-context-kind={resolvedContextKind}
+      data-context-id={resolvedContextId}
       initial={{ opacity: 0, scale: 0.96, y: 18 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.96, y: 18 }}

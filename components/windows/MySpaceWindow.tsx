@@ -1,19 +1,16 @@
 "use client";
 
 import {
-  Archive,
   ArrowLeft,
   Clock,
   ClipboardCheck,
   Database,
-  FileText,
   Folder,
   Grid3X3,
   HardDrive,
   Home,
-  Image as ImageIcon,
   List,
-  Music2,
+  FileText,
   Pin,
   Plus,
   Search,
@@ -27,6 +24,7 @@ import {
 import { useMemo, useState } from "react";
 import { folders, type NovaFile } from "@/data/nova";
 import { WindowFrame } from "@/components/desktop/WindowFrame";
+import { fileContext, fileIcon, fileProfile, fileReaderContent, fileTypeClass } from "@/components/windows/nova-file-helpers";
 import { cn } from "@/lib/utils";
 import type { NovaSystemActions, NovaSystemState } from "@/lib/nova-system";
 
@@ -109,116 +107,6 @@ function sectionFiles(files: NovaFile[], section: string) {
     default:
       return files;
   }
-}
-
-function fileIcon(file: NovaFile) {
-  if (/CSV|JSON|Spreadsheet/.test(file[1])) {
-    return <Database size={13} />;
-  }
-
-  if (/Archive|zip/i.test(`${file[0]} ${file[1]}`)) {
-    return <Archive size={13} />;
-  }
-
-  if (file[1].includes("PNG")) {
-    return <ImageIcon size={13} />;
-  }
-
-  if (file[1].includes("MP3")) {
-    return <Music2 size={13} />;
-  }
-
-  return <FileText size={13} />;
-}
-
-function fileContext(file: NovaFile) {
-  if (file[1].includes("PDF")) {
-    return "Presentation and reference material ready for extraction.";
-  }
-
-  if (file[1].includes("PNG")) {
-    return "Visual asset indexed for moodboards, decks, and product surfaces.";
-  }
-
-  if (file[1].includes("MP3")) {
-    return "Audio draft ready for transcription, notes, or publishing prep.";
-  }
-
-  if (file[1].includes("Text")) {
-    return "Plain notes ready for cleanup, summary, and next-action capture.";
-  }
-
-  return "Nova document ready for planning, generation, and workspace context.";
-}
-
-function fileReaderContent(file: NovaFile) {
-  if (/CSV|Spreadsheet/.test(file[1])) {
-    return (
-      <div className="reader-table">
-        {[
-          ["Name", "Status", "Value"],
-          ["Aster Studio", "Active", "$12.4k"],
-          ["Northline Labs", "Invoice", "$8.9k"],
-          ["Luma Works", "Follow-up", "$4.8k"],
-        ].map((row) => (
-          <span key={row.join("-")}>
-            {row.map((cell) => (
-              <b key={cell}>{cell}</b>
-            ))}
-          </span>
-        ))}
-      </div>
-    );
-  }
-
-  if (/JSON/.test(file[1])) {
-    return (
-      <pre className="reader-code">{`{
-  "space": "Builder Studio",
-  "source": "${file[0]}",
-  "indexed": true,
-  "guard": "visible"
-}`}</pre>
-    );
-  }
-
-  if (/PNG|Design/.test(file[1])) {
-    return (
-      <div className="reader-canvas">
-        <span />
-        <strong>{file[0]}</strong>
-        <small>Visual preview rendered in Nova Space.</small>
-      </div>
-    );
-  }
-
-  if (/MP3|Audio/.test(file[1])) {
-    return (
-      <div className="reader-waveform">
-        {[34, 58, 42, 76, 49, 88, 54, 69, 38, 61, 45, 72].map((height, index) => (
-          <i key={`${height}-${index}`} style={{ height: `${height}%` }} />
-        ))}
-      </div>
-    );
-  }
-
-  if (/Archive|zip/i.test(`${file[0]} ${file[1]}`)) {
-    return (
-      <div className="reader-package">
-        {["Workspace snapshot", "Project files", "Guard ledger", "App state"].map((item) => (
-          <span key={item}>{item}</span>
-        ))}
-      </div>
-    );
-  }
-
-  return (
-    <div className="reader-document">
-      <p>{fileContext(file)}</p>
-      <p>Nova extracted the useful context, linked it to the active space, and kept the original file available here.</p>
-      <p>Next actions can be summarized, pinned, or sent to Guard before any external sharing.</p>
-    </div>
-  );
 }
 
 export function MySpaceWindow({ system, systemActions, onClose, onMinimize, onFocus }: MySpaceWindowProps) {
@@ -371,9 +259,11 @@ export function MySpaceWindow({ system, systemActions, onClose, onMinimize, onFo
               <div className="file-list">
                 {visibleFiles.map((file) => {
                   const selected = selectedFile?.[0] === file[0];
+                  const profile = fileProfile(file);
+                  const fileOpen = system.openedFileNames.includes(file[0]);
                   return (
                     <button
-                      className={cn("file-row", selected && "selected", system.openedFileName === file[0] && "opened")}
+                      className={cn("file-row", fileTypeClass(file), selected && "selected", fileOpen && "opened")}
                       key={file[0]}
                       type="button"
                       onClick={() => openFile(file)}
@@ -383,12 +273,12 @@ export function MySpaceWindow({ system, systemActions, onClose, onMinimize, onFo
                       data-context-id={file[0]}
                     >
                       <span className="file-name">
-                        <span className="file-badge">{fileIcon(file)}</span>
+                        <span className={cn("file-badge", profile.className)}>{profile.icon}</span>
                         {file[0]}
                       </span>
-                      <span>{file[1]}</span>
+                      <span className="file-type-pill">{profile.label}</span>
                       <span>{file[2]}</span>
-                      <span>{system.openedFileName === file[0] ? "Open" : file[3]}</span>
+                      <span>{fileOpen ? "Open" : file[3]}</span>
                     </button>
                   );
                 })}
@@ -399,9 +289,9 @@ export function MySpaceWindow({ system, systemActions, onClose, onMinimize, onFo
             {previewFile ? (
               <aside className={cn("file-preview-panel", openedFile && "file-reader-panel")} aria-label="File preview">
                 <div className="preview-panel-top">
-                  <div className="preview-file-orb">{fileIcon(previewFile)}</div>
+                  <div className={cn("preview-file-orb", fileTypeClass(previewFile))}>{fileIcon(previewFile)}</div>
                   {openedFile ? (
-                    <button className="icon-button" type="button" aria-label={`Close ${openedFile[0]}`} onClick={systemActions.closeFile}>
+                    <button className="icon-button" type="button" aria-label={`Close ${openedFile[0]}`} onClick={() => systemActions.closeFile()}>
                       <X size={15} />
                     </button>
                   ) : null}

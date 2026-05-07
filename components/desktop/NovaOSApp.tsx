@@ -9,6 +9,7 @@ import {
   defaultNovaSystemState,
   mergeNovaSystemState,
   type NovaDisplayMode,
+  type NovaFileArrangeMode,
   type NovaFontScale,
   type NovaInterfaceDensity,
   type NovaOfflineStatus,
@@ -17,6 +18,7 @@ import {
   type NovaSystemActions,
   type NovaSystemState,
   type NovaTheme,
+  type NovaWindowLayout,
 } from "@/lib/nova-system";
 
 const STORAGE_KEY = "nova-os-onboarding-complete";
@@ -136,6 +138,108 @@ function pushActivity(
   tone: NovaSystemState["activityLog"][number]["tone"] = "info"
 ) {
   return [createActivity(title, body, tone), ...current.activityLog].slice(0, 18);
+}
+
+function defaultFileWindowLayout(index: number): NovaWindowLayout {
+  const offset = Math.min(index, 5) * 28;
+  const viewportWidth = typeof window === "undefined" ? 1440 : window.innerWidth;
+  const width = 520;
+  return {
+    x: Math.max(360, viewportWidth - width - 72 - offset),
+    y: 140 + offset,
+    width,
+    height: 560,
+  };
+}
+
+function desktopFileArea() {
+  const viewportWidth = typeof window === "undefined" ? 1440 : window.innerWidth;
+  const viewportHeight = typeof window === "undefined" ? 960 : window.innerHeight;
+  return {
+    x: 118,
+    y: 112,
+    width: Math.max(620, viewportWidth - 158),
+    height: Math.max(420, viewportHeight - 224),
+  };
+}
+
+function gridLayouts(fileNames: string[], area: NovaWindowLayout, gap = 14) {
+  const layouts: Record<string, NovaWindowLayout> = {};
+  if (!fileNames.length) {
+    return layouts;
+  }
+
+  const columns = Math.ceil(Math.sqrt(fileNames.length));
+  const rows = Math.ceil(fileNames.length / columns);
+  const width = Math.max(360, Math.floor((area.width - gap * (columns - 1)) / columns));
+  const height = Math.max(300, Math.floor((area.height - gap * (rows - 1)) / rows));
+
+  fileNames.forEach((fileName, index) => {
+    const column = index % columns;
+    const row = Math.floor(index / columns);
+    layouts[fileName] = {
+      x: area.x + column * (width + gap),
+      y: area.y + row * (height + gap),
+      width,
+      height,
+    };
+  });
+
+  return layouts;
+}
+
+function fileWindowLayoutsFor(fileNames: string[], activeFileName: string | undefined, mode: NovaFileArrangeMode) {
+  const area = desktopFileArea();
+  const activeName = activeFileName && fileNames.includes(activeFileName) ? activeFileName : fileNames.at(-1);
+  const layouts: Record<string, NovaWindowLayout> = {};
+
+  if (mode === "grid") {
+    return gridLayouts(fileNames, area);
+  }
+
+  if (mode === "cascade") {
+    const width = Math.min(560, Math.max(420, area.width * 0.46));
+    const height = Math.min(560, Math.max(360, area.height * 0.72));
+    fileNames.forEach((fileName, index) => {
+      const offset = index * 34;
+      layouts[fileName] = {
+        x: area.x + 170 + offset,
+        y: area.y + 28 + offset,
+        width,
+        height,
+      };
+    });
+    return layouts;
+  }
+
+  if (!activeName) {
+    return layouts;
+  }
+
+  if (mode === "fill") {
+    Object.assign(layouts, gridLayouts(fileNames.filter((fileName) => fileName !== activeName), { ...area, width: 420, height: area.height }));
+    layouts[activeName] = {
+      x: area.x,
+      y: area.y,
+      width: area.width,
+      height: area.height,
+    };
+    return layouts;
+  }
+
+  const halfWidth = Math.floor((area.width - 14) / 2);
+  const activeArea =
+    mode === "left"
+      ? { ...area, width: halfWidth }
+      : { ...area, x: area.x + halfWidth + 14, width: halfWidth };
+  const restArea =
+    mode === "left"
+      ? { ...area, x: area.x + halfWidth + 14, width: halfWidth }
+      : { ...area, width: halfWidth };
+
+  Object.assign(layouts, gridLayouts(fileNames.filter((fileName) => fileName !== activeName), restArea));
+  layouts[activeName] = activeArea;
+  return layouts;
 }
 
 export function NovaOSApp() {
@@ -316,6 +420,15 @@ export function NovaOSApp() {
         activeFileSection: "Recent",
         activeFileName: "Untitled_Nova_App.nova",
         openedFileName: "Untitled_Nova_App.nova",
+        openedFileNames: [
+          ...current.openedFileNames.filter((fileName) => fileName !== "Untitled_Nova_App.nova"),
+          "Untitled_Nova_App.nova",
+        ],
+        fileWindowLayouts: {
+          ...current.fileWindowLayouts,
+          "Untitled_Nova_App.nova":
+            current.fileWindowLayouts["Untitled_Nova_App.nova"] ?? defaultFileWindowLayout(current.openedFileNames.length),
+        },
         fileInsight: "This new Nova document is ready for app planning, notes, or a generated workflow.",
         files: [
           ["Untitled_Nova_App.nova", "Nova Document", "Just now", "16 KB"],
@@ -327,7 +440,7 @@ export function NovaOSApp() {
       }));
     },
     setFileSection(section: string) {
-      updateSystem((current) => ({ ...current, activeFileSection: section, openedFileName: undefined }));
+      updateSystem((current) => ({ ...current, activeFileSection: section }));
     },
     selectFile(fileName: string) {
       updateSystem((current) => {
@@ -335,7 +448,6 @@ export function NovaOSApp() {
         return {
           ...current,
           activeFileName: fileName,
-          openedFileName: undefined,
           fileInsight: file
             ? `${file[0]} is selected. Nova can summarize it, pin it to ${current.activeSpace}, or send a guarded share request.`
             : current.fileInsight,
@@ -346,12 +458,22 @@ export function NovaOSApp() {
     openFile(fileName: string) {
       updateSystem((current) => {
         const file = current.files.find((item) => item[0] === fileName);
+        const openedFileNames = file
+          ? [...current.openedFileNames.filter((item) => item !== fileName), fileName].slice(-6)
+          : current.openedFileNames;
         return {
           ...current,
           activeFileName: fileName,
           openedFileName: file ? fileName : current.openedFileName,
+          openedFileNames,
+          fileWindowLayouts: file
+            ? {
+                ...current.fileWindowLayouts,
+                [fileName]: current.fileWindowLayouts[fileName] ?? defaultFileWindowLayout(openedFileNames.length - 1),
+              }
+            : current.fileWindowLayouts,
           fileInsight: file
-            ? `${file[0]} is open. Nova can read, summarize, pin, or guard-share it from this reader.`
+            ? `${file[0]} is open in a movable file window. Nova can read, summarize, pin, or guard-share it.`
             : current.fileInsight,
           hubActions: file ? current.hubActions + 1 : current.hubActions,
           hubSignal: file ? `${file[0]} opened in My Space.` : current.hubSignal,
@@ -359,11 +481,61 @@ export function NovaOSApp() {
         };
       });
     },
-    closeFile() {
+    focusFileWindow(fileName: string) {
+      updateSystem((current) => {
+        if (!current.openedFileNames.includes(fileName)) {
+          return current;
+        }
+
+        return {
+          ...current,
+          activeFileName: fileName,
+          openedFileName: fileName,
+          openedFileNames: [...current.openedFileNames.filter((item) => item !== fileName), fileName],
+        };
+      });
+    },
+    closeFile(fileName?: string) {
+      updateSystem((current) => {
+        const targetFileName = fileName ?? current.openedFileName;
+        const openedFileNames = targetFileName
+          ? current.openedFileNames.filter((item) => item !== targetFileName)
+          : current.openedFileNames;
+        const nextOpenedFileName = openedFileNames.at(-1);
+
+        return {
+          ...current,
+          openedFileNames,
+          openedFileName: nextOpenedFileName,
+          activeFileName: nextOpenedFileName ?? current.activeFileName,
+          hubSignal: `${targetFileName ?? current.activeFileName} closed. Open file windows were updated.`,
+        };
+      });
+    },
+    arrangeFileWindows(mode) {
+      updateSystem((current) => {
+        if (!current.openedFileNames.length) {
+          return current;
+        }
+
+        return {
+          ...current,
+          fileWindowLayouts: {
+            ...current.fileWindowLayouts,
+            ...fileWindowLayoutsFor(current.openedFileNames, current.openedFileName, mode),
+          },
+          hubSignal: `Open file windows arranged with ${mode}.`,
+          activityLog: pushActivity(current, "File windows arranged", `Nova arranged ${current.openedFileNames.length} open file window(s) with ${mode}.`, "system"),
+        };
+      });
+    },
+    setFileWindowLayout(fileName, layout) {
       updateSystem((current) => ({
         ...current,
-        openedFileName: undefined,
-        hubSignal: `${current.activeFileName} closed. My Space returned to preview mode.`,
+        fileWindowLayouts: {
+          ...current.fileWindowLayouts,
+          [fileName]: layout,
+        },
       }));
     },
     summarizeFile(fileName: string) {

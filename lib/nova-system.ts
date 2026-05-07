@@ -55,6 +55,13 @@ export type NovaWindowSize = {
   height: number;
 };
 
+export type NovaWindowLayout = NovaWindowSize & {
+  x: number;
+  y: number;
+};
+
+export type NovaFileArrangeMode = "fill" | "left" | "right" | "grid" | "cascade";
+
 export type NovaSystemState = {
   stateVersion: number;
   openWindows: WindowKey[];
@@ -64,6 +71,8 @@ export type NovaSystemState = {
   activeFileSection: string;
   activeFileName: string;
   openedFileName?: string;
+  openedFileNames: string[];
+  fileWindowLayouts: Record<string, NovaWindowLayout>;
   fileInsight: string;
   aiProviders: AiProvider[];
   selectedProvider: string;
@@ -95,7 +104,10 @@ export type NovaSystemActions = {
   setFileSection: (section: string) => void;
   selectFile: (fileName: string) => void;
   openFile: (fileName: string) => void;
-  closeFile: () => void;
+  focusFileWindow: (fileName: string) => void;
+  closeFile: (fileName?: string) => void;
+  arrangeFileWindows: (mode: NovaFileArrangeMode) => void;
+  setFileWindowLayout: (fileName: string, layout: NovaWindowLayout) => void;
   summarizeFile: (fileName: string) => void;
   shareFile: (fileName: string) => void;
   pinFileToSpace: (fileName: string) => void;
@@ -135,7 +147,7 @@ function mergeFiles(files: NovaFile[] | undefined) {
 }
 
 export const defaultNovaSystemState: NovaSystemState = {
-  stateVersion: 3,
+  stateVersion: 4,
   openWindows: initialWindows,
   minimizedWindows: [],
   windowSizes: {},
@@ -143,6 +155,8 @@ export const defaultNovaSystemState: NovaSystemState = {
   activeFileSection: "My Space",
   activeFileName: recentFiles[0][0],
   openedFileName: undefined,
+  openedFileNames: [],
+  fileWindowLayouts: {},
   fileInsight: "Nova is ready to preview, summarize, or route this file into the active space.",
   aiProviders,
   selectedProvider: "Codex",
@@ -210,6 +224,11 @@ export function mergeNovaSystemState(value: unknown): NovaSystemState {
 
   const state = value as Partial<NovaSystemState>;
   const incomingOpenWindows = Array.isArray(state.openWindows) ? state.openWindows : defaultNovaSystemState.openWindows;
+  const incomingOpenedFiles = Array.isArray(state.openedFileNames)
+    ? state.openedFileNames
+    : state.openedFileName
+      ? [state.openedFileName]
+      : defaultNovaSystemState.openedFileNames;
   const isLegacyDefaultWindowStack =
     state.stateVersion !== defaultNovaSystemState.stateVersion &&
     incomingOpenWindows.length === 2 &&
@@ -228,6 +247,8 @@ export function mergeNovaSystemState(value: unknown): NovaSystemState {
     minimizedWindows: Array.isArray(state.minimizedWindows) ? state.minimizedWindows : defaultNovaSystemState.minimizedWindows,
     windowSizes: state.windowSizes ?? defaultNovaSystemState.windowSizes,
     files: mergeFiles(state.files),
+    openedFileNames: incomingOpenedFiles,
+    fileWindowLayouts: state.fileWindowLayouts ?? defaultNovaSystemState.fileWindowLayouts,
     openWindows: isLegacyDefaultWindowStack ? defaultNovaSystemState.openWindows : incomingOpenWindows,
     aiProviders: state.aiProviders?.length ? state.aiProviders : defaultNovaSystemState.aiProviders,
     guardPermissions: state.guardPermissions?.length ? state.guardPermissions : defaultNovaSystemState.guardPermissions,

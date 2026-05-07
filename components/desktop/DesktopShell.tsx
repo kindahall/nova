@@ -43,11 +43,13 @@ import { OfflineModePanel } from "@/components/windows/OfflineModePanel";
 import { PersonalizeWindow } from "@/components/windows/PersonalizeWindow";
 import { SpacesWindow } from "@/components/windows/SpacesWindow";
 import { DesktopIcons } from "@/components/desktop/DesktopIcons";
+import { FileWindowOrganizer } from "@/components/desktop/FileWindowOrganizer";
 import { MissionControlOverlay } from "@/components/desktop/MissionControlOverlay";
 import { NotificationStack } from "@/components/desktop/NotificationStack";
 import { SystemStatus } from "@/components/desktop/SystemStatus";
 import { NovaRail } from "@/components/rail/NovaRail";
 import { CalculatorWindow } from "@/components/windows/CalculatorWindow";
+import { FileViewerWindow } from "@/components/windows/FileViewerWindow";
 import { NotesWindow } from "@/components/windows/NotesWindow";
 import { WeatherWindow } from "@/components/windows/WeatherWindow";
 import type { NovaSystemActions, NovaSystemState } from "@/lib/nova-system";
@@ -616,10 +618,19 @@ export function DesktopShell({
       <SystemStatus system={system} onOpenWeather={() => onOpen("weather")} />
       <NotificationStack activityLog={system.activityLog} onOpenActivity={() => onOpen("activity-center")} />
       <DesktopIcons onOpen={onOpen} />
+      <FileWindowOrganizer
+        count={system.openedFileNames.length}
+        activeFileName={system.openedFileName}
+        onArrange={systemActions.arrangeFileWindows}
+      />
 
       <section className="window-layer" aria-label="Nova desktop windows">
         <AnimatePresence>
           {activeWindows.map((windowKey) => renderWindow(windowKey))}
+          {system.openedFileNames.map((fileName) => {
+            const file = system.files.find((item) => item[0] === fileName);
+            return file ? <FileViewerWindow key={`file-window-${fileName}`} file={file} system={system} systemActions={systemActions} /> : null;
+          })}
           {commandOpen ? (
             <NovaCommandWindow
               key="nova-command"

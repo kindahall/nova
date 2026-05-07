@@ -810,6 +810,119 @@ button {
   height: min(640px, calc(100svh - 190px));
 }
 
+.window--file-viewer {
+  width: 520px;
+  height: 560px;
+  min-width: 420px;
+  min-height: 360px;
+  border-color: color-mix(in srgb, var(--file-kind-color) 36%, rgba(255, 255, 255, 0.64));
+}
+
+.window--file-viewer .window-header {
+  background: linear-gradient(90deg, var(--file-kind-soft), transparent 68%);
+}
+
+.file-window-title-icon {
+  --file-kind-color: #7467ff;
+  --file-kind-soft: rgba(116, 103, 255, 0.15);
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  color: white;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--file-kind-color) 58%, white), var(--file-kind-color));
+  box-shadow: 0 10px 18px color-mix(in srgb, var(--file-kind-color) 24%, transparent);
+}
+
+.file-window-body {
+  display: grid;
+  gap: 14px;
+  min-height: 100%;
+}
+
+.file-window-summary {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  align-items: start;
+  gap: 14px;
+}
+
+.file-window-summary h3 {
+  margin: 0 0 6px;
+  color: #1f294b;
+  font-size: 18px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.file-window-summary p {
+  color: #647091;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.file-window-organizer {
+  position: absolute;
+  top: 88px;
+  left: 50%;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: min(760px, calc(100vw - 180px));
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  border-radius: 22px;
+  color: var(--pearl);
+  background: rgba(12, 21, 55, 0.58);
+  box-shadow: 0 18px 48px rgba(7, 12, 42, 0.22);
+  backdrop-filter: blur(20px) saturate(1.1);
+  pointer-events: auto;
+  transform: translateX(-50%);
+}
+
+.file-window-organizer > span {
+  min-width: 126px;
+  max-width: 210px;
+  padding: 0 8px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.file-window-organizer small {
+  display: block;
+  margin-top: 2px;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 10px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-window-organizer button {
+  min-width: 66px;
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 10px;
+  border-radius: 15px;
+  color: rgba(255, 255, 255, 0.86);
+  background: rgba(255, 255, 255, 0.12);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.file-window-organizer button:hover {
+  transform: translateY(-1px);
+  color: white;
+  background: rgba(255, 255, 255, 0.2);
+}
+
 .window--personalize {
   top: 130px;
   right: 44px;
@@ -1413,10 +1526,14 @@ button {
 }
 
 .file-row {
+  --file-kind-color: #5a67ff;
+  --file-kind-soft: rgba(90, 103, 255, 0.12);
   display: grid;
   grid-template-columns: 1.4fr 1fr 1fr auto;
   align-items: center;
   gap: 14px;
+  position: relative;
+  overflow: hidden;
   min-height: 36px;
   width: 100%;
   padding: 0 8px;
@@ -1429,17 +1546,27 @@ button {
   transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
 }
 
+.file-row::before {
+  content: "";
+  position: absolute;
+  inset: 7px auto 7px 0;
+  width: 3px;
+  border-radius: 999px;
+  background: var(--file-kind-color);
+  opacity: 0.84;
+}
+
 .file-row:hover,
 .file-row.selected {
   transform: translateX(2px);
-  border-color: rgba(116, 103, 255, 0.2);
-  background: rgba(255, 255, 255, 0.46);
+  border-color: color-mix(in srgb, var(--file-kind-color) 42%, transparent);
+  background: linear-gradient(90deg, var(--file-kind-soft), rgba(255, 255, 255, 0.46));
 }
 
 .file-row.opened {
-  border-color: rgba(116, 103, 255, 0.42);
-  background: rgba(116, 103, 255, 0.14);
-  box-shadow: 0 12px 24px rgba(116, 103, 255, 0.12);
+  border-color: color-mix(in srgb, var(--file-kind-color) 62%, transparent);
+  background: linear-gradient(90deg, var(--file-kind-soft), rgba(255, 255, 255, 0.56));
+  box-shadow: 0 12px 24px color-mix(in srgb, var(--file-kind-color) 18%, transparent);
 }
 
 .file-row.empty {
@@ -1458,6 +1585,8 @@ button {
 }
 
 .file-badge {
+  --file-kind-color: #5a67ff;
+  --file-kind-soft: rgba(90, 103, 255, 0.12);
   width: 22px;
   height: 22px;
   display: grid;
@@ -1465,7 +1594,65 @@ button {
   border-radius: 7px;
   color: white;
   font-size: 10px;
-  background: linear-gradient(135deg, #5ad5d6, #5a67ff);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--file-kind-color) 60%, white), var(--file-kind-color));
+  box-shadow: 0 8px 16px color-mix(in srgb, var(--file-kind-color) 26%, transparent);
+}
+
+.file-type-pill {
+  width: fit-content;
+  max-width: 100%;
+  padding: 4px 8px;
+  border-radius: 999px;
+  color: color-mix(in srgb, var(--file-kind-color) 78%, #283151);
+  background: var(--file-kind-soft);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.file-kind-pdf {
+  --file-kind-color: #f05e7f;
+  --file-kind-soft: rgba(240, 94, 127, 0.14);
+}
+
+.file-kind-nova {
+  --file-kind-color: #7467ff;
+  --file-kind-soft: rgba(116, 103, 255, 0.15);
+}
+
+.file-kind-image {
+  --file-kind-color: #18b9e8;
+  --file-kind-soft: rgba(24, 185, 232, 0.15);
+}
+
+.file-kind-audio {
+  --file-kind-color: #9b62ff;
+  --file-kind-soft: rgba(155, 98, 255, 0.15);
+}
+
+.file-kind-spreadsheet {
+  --file-kind-color: #2fbd72;
+  --file-kind-soft: rgba(47, 189, 114, 0.15);
+}
+
+.file-kind-design {
+  --file-kind-color: #f59e45;
+  --file-kind-soft: rgba(245, 158, 69, 0.16);
+}
+
+.file-kind-data {
+  --file-kind-color: #16a6a8;
+  --file-kind-soft: rgba(22, 166, 168, 0.15);
+}
+
+.file-kind-archive {
+  --file-kind-color: #7b879c;
+  --file-kind-soft: rgba(123, 135, 156, 0.16);
+}
+
+.file-kind-text,
+.file-kind-document {
+  --file-kind-color: #3a86ff;
+  --file-kind-soft: rgba(58, 134, 255, 0.14);
 }
 
 .file-preview-panel {
@@ -1496,6 +1683,8 @@ button {
 }
 
 .preview-file-orb {
+  --file-kind-color: #7467ff;
+  --file-kind-soft: rgba(116, 103, 255, 0.16);
   width: 54px;
   height: 54px;
   display: grid;
@@ -1503,8 +1692,9 @@ button {
   margin-bottom: 12px;
   border-radius: 18px;
   color: white;
-  background: linear-gradient(135deg, #59d8f2, #7467ff 62%, #ffb6db);
-  box-shadow: 0 16px 28px rgba(116, 103, 255, 0.2);
+  background: radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.9), transparent 22%),
+    linear-gradient(135deg, color-mix(in srgb, var(--file-kind-color) 58%, white), var(--file-kind-color) 68%, rgba(255, 255, 255, 0.44));
+  box-shadow: 0 16px 28px color-mix(in srgb, var(--file-kind-color) 25%, transparent);
 }
 
 .preview-state {
