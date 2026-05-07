@@ -34,6 +34,7 @@ export function OfflineModePanel({ system, systemActions, onClose, onMinimize, o
       icon={<CloudOff size={18} />}
       className="window--offline-mode"
       tone="dark"
+      windowKey="offline-mode"
       windowSize={system.windowSizes["offline-mode"]}
       onClose={onClose}
       onMinimize={onMinimize}

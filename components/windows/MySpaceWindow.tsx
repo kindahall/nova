@@ -224,7 +224,6 @@ function fileReaderContent(file: NovaFile) {
 export function MySpaceWindow({ system, systemActions, onClose, onMinimize, onFocus }: MySpaceWindowProps) {
   const [query, setQuery] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [openedFileName, setOpenedFileName] = useState<string | undefined>();
   const scopedFiles = useMemo(() => sectionFiles(system.files, system.activeFileSection), [system.activeFileSection, system.files]);
   const visibleFiles = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -235,7 +234,7 @@ export function MySpaceWindow({ system, systemActions, onClose, onMinimize, onFo
     return scopedFiles.filter((file) => file.join(" ").toLowerCase().includes(normalizedQuery));
   }, [scopedFiles, query]);
   const selectedFile = visibleFiles.find((file) => file[0] === system.activeFileName) ?? visibleFiles[0];
-  const openedFile = openedFileName ? system.files.find((file) => file[0] === openedFileName) : undefined;
+  const openedFile = system.openedFileName ? system.files.find((file) => file[0] === system.openedFileName) : undefined;
   const previewFile = openedFile ?? selectedFile;
   const locationIsOpen = system.activeFileSection !== "My Space";
 
@@ -245,18 +244,15 @@ export function MySpaceWindow({ system, systemActions, onClose, onMinimize, onFo
     if (firstFile) {
       systemActions.selectFile(firstFile[0]);
     }
-    setOpenedFileName(undefined);
     setQuery("");
   }
 
   function openFile(file: NovaFile) {
-    systemActions.selectFile(file[0]);
-    setOpenedFileName(file[0]);
+    systemActions.openFile(file[0]);
   }
 
   function addFile() {
     systemActions.addFile();
-    setOpenedFileName("Untitled_Nova_App.nova");
     setQuery("");
   }
 
@@ -266,6 +262,7 @@ export function MySpaceWindow({ system, systemActions, onClose, onMinimize, onFo
       subtitle="Explorer"
       icon={<Home size={18} />}
       className="window--my-space light-panel"
+      windowKey="my-space"
       windowSize={system.windowSizes["my-space"]}
       onClose={onClose}
       onMinimize={onMinimize}
@@ -283,6 +280,8 @@ export function MySpaceWindow({ system, systemActions, onClose, onMinimize, onFo
                 type="button"
                 onClick={() => openSection(item.label)}
                 aria-pressed={system.activeFileSection === item.label}
+                data-context-kind="location"
+                data-context-id={item.label}
               >
                 <Icon size={15} /> {item.label}
               </button>
@@ -351,6 +350,8 @@ export function MySpaceWindow({ system, systemActions, onClose, onMinimize, onFo
                           type="button"
                           onClick={() => openSection(folder.name)}
                           aria-label={`Open ${folder.name} folder`}
+                          data-context-kind="location"
+                          data-context-id={folder.name}
                         >
                           <div className="folder-icon" />
                           <strong>{folder.name}</strong>
@@ -372,12 +373,14 @@ export function MySpaceWindow({ system, systemActions, onClose, onMinimize, onFo
                   const selected = selectedFile?.[0] === file[0];
                   return (
                     <button
-                      className={cn("file-row", selected && "selected", openedFileName === file[0] && "opened")}
+                      className={cn("file-row", selected && "selected", system.openedFileName === file[0] && "opened")}
                       key={file[0]}
                       type="button"
                       onClick={() => openFile(file)}
                       aria-label={`Open ${file[0]}`}
                       aria-pressed={selected}
+                      data-context-kind="file"
+                      data-context-id={file[0]}
                     >
                       <span className="file-name">
                         <span className="file-badge">{fileIcon(file)}</span>
@@ -385,7 +388,7 @@ export function MySpaceWindow({ system, systemActions, onClose, onMinimize, onFo
                       </span>
                       <span>{file[1]}</span>
                       <span>{file[2]}</span>
-                      <span>{openedFileName === file[0] ? "Open" : file[3]}</span>
+                      <span>{system.openedFileName === file[0] ? "Open" : file[3]}</span>
                     </button>
                   );
                 })}
@@ -398,7 +401,7 @@ export function MySpaceWindow({ system, systemActions, onClose, onMinimize, onFo
                 <div className="preview-panel-top">
                   <div className="preview-file-orb">{fileIcon(previewFile)}</div>
                   {openedFile ? (
-                    <button className="icon-button" type="button" aria-label={`Close ${openedFile[0]}`} onClick={() => setOpenedFileName(undefined)}>
+                    <button className="icon-button" type="button" aria-label={`Close ${openedFile[0]}`} onClick={systemActions.closeFile}>
                       <X size={15} />
                     </button>
                   ) : null}
@@ -429,7 +432,7 @@ export function MySpaceWindow({ system, systemActions, onClose, onMinimize, onFo
 
                 <div className="preview-actions">
                   {!openedFile ? (
-                    <button className="primary-button" type="button" onClick={() => openFile(previewFile)}>
+                    <button className="primary-button" type="button" onClick={() => openFile(previewFile)} data-context-kind="file" data-context-id={previewFile[0]}>
                       <FileText size={15} />
                       Open
                     </button>

@@ -24,6 +24,7 @@ export function AiCenterWindow({ system, systemActions, onClose, onMinimize, onF
       icon={<BrainCircuit size={18} />}
       className="window--ai-center"
       tone="dark"
+      windowKey="ai-center"
       windowSize={system.windowSizes["ai-center"]}
       onClose={onClose}
       onMinimize={onMinimize}

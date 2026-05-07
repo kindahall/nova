@@ -3,10 +3,13 @@
 import {
   Boxes,
   Bell,
+  Calculator,
+  CloudSun,
   Folder,
   Home,
   Mail,
   Monitor,
+  NotebookPen,
   Settings,
   ShieldCheck,
   Sparkles,
@@ -21,6 +24,8 @@ import type { NovaSystemActions, NovaSystemState } from "@/lib/nova-system";
 
 type NovaRailProps = {
   activeWindows: WindowKey[];
+  minimizedWindows: WindowKey[];
+  attentionWindow?: WindowKey;
   system: NovaSystemState;
   systemActions: NovaSystemActions;
   onOpen: (window: WindowKey) => void;
@@ -35,9 +40,12 @@ const railItems: Array<{ key: WindowKey; label: string; icon: ComponentType<{ si
   { key: "nova-store", label: "Nova Store", icon: Store },
   { key: "nova-guard", label: "Nova Guard", icon: ShieldCheck },
   { key: "activity-center", label: "Activity Center", icon: Bell },
+  { key: "weather", label: "Weather", icon: CloudSun },
+  { key: "notes", label: "Notes", icon: NotebookPen },
+  { key: "calculator", label: "Calculator", icon: Calculator },
 ];
 
-export function NovaRail({ activeWindows, system, systemActions, onOpen, onCommand }: NovaRailProps) {
+export function NovaRail({ activeWindows, minimizedWindows, attentionWindow, system, systemActions, onOpen, onCommand }: NovaRailProps) {
   function bumpBrightness() {
     systemActions.setBrightness(system.brightness >= 94 ? 54 : system.brightness + 10);
   }
@@ -58,16 +66,22 @@ export function NovaRail({ activeWindows, system, systemActions, onOpen, onComma
 
       {railItems.map((item) => {
         const Icon = item.icon;
+        const active = activeWindows.includes(item.key);
+        const minimized = minimizedWindows.includes(item.key);
+        const needsAttention = attentionWindow === item.key;
         return (
           <button
             key={item.key}
-            className={cn("rail-button", activeWindows.includes(item.key) && "active")}
+            className={cn("rail-button", active && "active", minimized && "minimized", needsAttention && "attention")}
             type="button"
             title={item.label}
-            aria-label={item.label}
+            aria-label={minimized ? `Restore ${item.label}` : item.label}
+            data-context-kind="shelf-window"
+            data-context-id={item.key}
             onClick={() => onOpen(item.key)}
           >
             <Icon size={19} />
+            {minimized ? <span className="rail-minimized-dot" /> : null}
           </button>
         );
       })}

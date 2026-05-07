@@ -161,6 +161,136 @@ button {
   opacity: 0.24;
 }
 
+.context-menu-layer {
+  position: fixed;
+  z-index: 80;
+  inset: 0;
+}
+
+.nova-context-menu {
+  position: fixed;
+  width: min(292px, calc(100vw - 24px));
+  max-height: min(430px, calc(100svh - 24px));
+  overflow: hidden;
+  border: 1px solid rgba(218, 228, 255, 0.42);
+  border-radius: 18px;
+  color: #f8fbff;
+  background:
+    linear-gradient(180deg, rgba(22, 35, 86, 0.9), rgba(14, 24, 63, 0.82)),
+    color-mix(in srgb, var(--nova-accent) 22%, transparent);
+  box-shadow: 0 24px 70px rgba(2, 6, 28, 0.44), inset 0 1px rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(24px);
+}
+
+.nova-context-menu header {
+  display: grid;
+  gap: 3px;
+  padding: 12px 12px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.nova-context-menu header strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.nova-context-menu header span {
+  color: rgba(238, 246, 255, 0.68);
+  font-size: 11px;
+}
+
+.context-menu-items {
+  max-height: 360px;
+  overflow: auto;
+  padding: 7px;
+}
+
+.context-menu-item {
+  width: 100%;
+  min-height: 44px;
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 9px;
+  border-radius: 12px;
+  color: inherit;
+  text-align: left;
+  background: transparent;
+  transition: background 160ms ease, transform 160ms ease;
+}
+
+.context-menu-item:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.context-menu-item:disabled {
+  cursor: default;
+  opacity: 0.42;
+}
+
+.context-menu-item:disabled:hover {
+  transform: none;
+  background: transparent;
+}
+
+.context-menu-item.with-divider {
+  margin-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 11px;
+}
+
+.context-menu-item.danger:hover {
+  background: rgba(255, 117, 153, 0.18);
+}
+
+.context-menu-icon {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  color: #dce7ff;
+  background: rgba(255, 255, 255, 0.11);
+}
+
+.context-menu-copy {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.context-menu-copy strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.context-menu-copy small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: rgba(238, 246, 255, 0.66);
+  font-size: 10px;
+}
+
+.context-menu-item kbd {
+  min-width: 25px;
+  padding: 4px 6px;
+  border-radius: 7px;
+  color: rgba(238, 246, 255, 0.76);
+  font-size: 10px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.1);
+}
+
 .nova-rail {
   position: fixed;
   z-index: 20;
@@ -230,6 +360,7 @@ button {
 }
 
 .rail-button {
+  position: relative;
   width: 42px;
   height: 42px;
   display: grid;
@@ -245,6 +376,39 @@ button {
   color: white;
   background: color-mix(in srgb, var(--nova-accent) 56%, transparent);
   box-shadow: 0 0 24px rgba(132, 117, 255, 0.46);
+}
+
+.rail-button.minimized {
+  opacity: 0.82;
+  border: 1px solid rgba(122, 219, 255, 0.34);
+}
+
+.rail-button.attention,
+.shelf-button.attention {
+  animation: nova-attention-pulse 1.1s ease-in-out infinite;
+}
+
+.rail-minimized-dot {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #67dfff;
+  box-shadow: 0 0 12px rgba(103, 223, 255, 0.86);
+}
+
+@keyframes nova-attention-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 rgba(104, 214, 255, 0), 0 0 0 rgba(132, 117, 255, 0);
+    filter: brightness(1);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(104, 214, 255, 0.2), 0 0 28px rgba(132, 117, 255, 0.72);
+    filter: brightness(1.22);
+  }
 }
 
 .rail-spacer {
@@ -661,6 +825,9 @@ button {
 .window--spaces,
 .window--offline-mode,
 .window--activity-center,
+.window--weather,
+.window--notes,
+.window--calculator,
 .window--create-app,
 .window--crm-app {
   top: 118px;
@@ -673,6 +840,21 @@ button {
 .window--crm-app {
   width: min(1040px, calc(100vw - 176px));
   height: min(690px, calc(100svh - 180px));
+}
+
+.window--weather {
+  width: min(760px, calc(100vw - 190px));
+  height: min(590px, calc(100svh - 210px));
+}
+
+.window--notes {
+  width: min(820px, calc(100vw - 190px));
+  height: min(610px, calc(100svh - 210px));
+}
+
+.window--calculator {
+  width: min(390px, calc(100vw - 190px));
+  height: auto;
 }
 
 .window--nova-command {
@@ -1445,6 +1627,235 @@ button {
 
 .reader-document p {
   color: #4d587a;
+}
+
+.weather-layout {
+  display: grid;
+  gap: 16px;
+}
+
+.weather-hero {
+  min-height: 176px;
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 24px;
+  background: radial-gradient(circle at 18% 20%, rgba(113, 222, 255, 0.38), transparent 34%), rgba(255, 255, 255, 0.12);
+}
+
+.weather-icon-cloud {
+  width: 92px;
+  height: 92px;
+  display: grid;
+  place-items: center;
+  border-radius: 32px;
+  color: white;
+  background: linear-gradient(135deg, rgba(94, 216, 255, 0.36), rgba(116, 103, 255, 0.72));
+  box-shadow: 0 18px 42px rgba(55, 69, 161, 0.38);
+}
+
+.weather-location {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+}
+
+.weather-hero strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 58px;
+  line-height: 0.95;
+}
+
+.weather-hero p {
+  margin: 8px 0 0;
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.weather-actions {
+  display: grid;
+  gap: 10px;
+  align-self: end;
+}
+
+.weather-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.weather-forecast {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.weather-forecast span {
+  min-width: 0;
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  padding: 12px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.weather-forecast small {
+  color: rgba(255, 255, 255, 0.66);
+}
+
+.notes-layout {
+  min-height: 0;
+  height: 100%;
+  display: grid;
+  grid-template-columns: minmax(180px, 230px) minmax(0, 1fr);
+  gap: 14px;
+}
+
+.notes-list,
+.note-editor {
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid rgba(116, 103, 255, 0.14);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.38);
+}
+
+.notes-list {
+  display: grid;
+  align-content: start;
+  gap: 9px;
+  padding: 12px;
+}
+
+.note-row {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+  padding: 11px 12px;
+  border-radius: 14px;
+  color: #27304f;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.44);
+}
+
+.note-row:hover,
+.note-row.active {
+  background: rgba(116, 103, 255, 0.14);
+}
+
+.note-row strong,
+.note-row span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.note-row span {
+  color: #697391;
+  font-size: 11px;
+}
+
+.note-editor {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  padding: 14px;
+}
+
+.note-editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  color: #697391;
+  font-size: 12px;
+}
+
+.compact-button.danger {
+  color: #fff;
+  background: rgba(255, 105, 140, 0.76);
+}
+
+.note-editor textarea {
+  width: 100%;
+  min-height: 320px;
+  resize: none;
+  border: 0;
+  outline: 0;
+  border-radius: 16px;
+  padding: 16px;
+  color: #1f2742;
+  background: rgba(255, 255, 255, 0.58);
+  font: inherit;
+  line-height: 1.55;
+}
+
+.calculator-app {
+  display: grid;
+  gap: 14px;
+}
+
+.calculator-display {
+  min-height: 110px;
+  display: grid;
+  align-content: end;
+  gap: 8px;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.calculator-display small {
+  color: rgba(255, 255, 255, 0.56);
+  font-size: 12px;
+}
+
+.calculator-display strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 46px;
+  text-align: right;
+}
+
+.calculator-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.calculator-grid button {
+  min-height: 52px;
+  border-radius: 17px;
+  color: white;
+  font-size: 18px;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.13);
+  transition: transform 160ms ease, background 160ms ease;
+}
+
+.calculator-grid button:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.calculator-grid .operator,
+.calculator-grid .equals {
+  background: color-mix(in srgb, var(--nova-accent) 66%, rgba(255, 255, 255, 0.12));
+}
+
+.calculator-grid .equals {
+  grid-column: span 2;
 }
 
 .preview-meta-grid {
@@ -3027,6 +3438,9 @@ button {
   .window--spaces,
   .window--offline-mode,
   .window--activity-center,
+  .window--weather,
+  .window--notes,
+  .window--calculator,
   .window--create-app,
   .window--crm-app {
     width: calc(100vw - 150px);
@@ -3103,6 +3517,9 @@ button {
   .window--spaces,
   .window--offline-mode,
   .window--activity-center,
+  .window--weather,
+  .window--notes,
+  .window--calculator,
   .window--create-app,
   .window--crm-app {
     position: relative;

@@ -38,6 +38,7 @@ export function ActivityCenterWindow({ system, systemActions, onOpenWindow, onCl
       icon={<Bell size={18} />}
       className="window--activity-center"
       tone="dark"
+      windowKey="activity-center"
       windowSize={system.windowSizes["activity-center"]}
       onClose={onClose}
       onMinimize={onMinimize}

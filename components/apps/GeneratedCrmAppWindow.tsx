@@ -124,6 +124,7 @@ export function GeneratedCrmAppWindow({ system, systemActions, onClose, onMinimi
       icon={<LayoutDashboard size={18} />}
       className="window--crm-app"
       tone="dark"
+      windowKey="crm-app"
       windowSize={system.windowSizes["crm-app"]}
       onClose={onClose}
       onMinimize={onMinimize}

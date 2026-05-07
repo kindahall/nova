@@ -8,6 +8,9 @@ export type WindowKey =
   | "spaces"
   | "offline-mode"
   | "activity-center"
+  | "weather"
+  | "notes"
+  | "calculator"
   | "create-app"
   | "crm-app";
 

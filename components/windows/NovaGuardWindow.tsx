@@ -24,6 +24,7 @@ export function NovaGuardWindow({ system, systemActions, onClose, onMinimize, on
       icon={<ShieldCheck size={18} />}
       className="window--nova-guard"
       tone="dark"
+      windowKey="nova-guard"
       windowSize={system.windowSizes["nova-guard"]}
       onClose={onClose}
       onMinimize={onMinimize}

@@ -6,7 +6,7 @@ import type { NovaSystemState } from "@/lib/nova-system";
 
 type SystemStatusProps = {
   system: NovaSystemState;
-  onOpenActivity: () => void;
+  onOpenWeather: () => void;
 };
 
 function formatClock(date: Date) {
@@ -17,7 +17,12 @@ function formatDate(date: Date) {
   return date.toLocaleDateString([], { month: "short", day: "numeric" });
 }
 
-export function SystemStatus({ system, onOpenActivity }: SystemStatusProps) {
+function localTemp() {
+  const hour = new Date().getHours();
+  return 15 + (new Date().getDate() % 5) + (hour > 11 && hour < 18 ? 4 : hour < 7 ? -2 : 1);
+}
+
+export function SystemStatus({ system, onOpenWeather }: SystemStatusProps) {
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
@@ -26,12 +31,12 @@ export function SystemStatus({ system, onOpenActivity }: SystemStatusProps) {
   }, []);
 
   return (
-    <button className="system-status" type="button" onClick={onOpenActivity} aria-label="Open Activity Center">
+    <button className="system-status" type="button" onClick={onOpenWeather} aria-label="Open Weather">
       <CloudSun size={25} />
       <div>
         <strong>{formatClock(now)}</strong>
         <span>
-          {formatDate(now)} - {system.activeSpace}
+          {localTemp()}°C - {formatDate(now)} - {system.activeSpace}
         </span>
       </div>
     </button>

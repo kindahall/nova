@@ -23,6 +23,7 @@ export function SpacesWindow({ system, systemActions, onClose, onMinimize, onFoc
       icon={<Boxes size={18} />}
       className="window--spaces"
       tone="dark"
+      windowKey="spaces"
       windowSize={system.windowSizes.spaces}
       onClose={onClose}
       onMinimize={onMinimize}

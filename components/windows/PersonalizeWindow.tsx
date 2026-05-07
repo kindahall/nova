@@ -282,6 +282,7 @@ export function PersonalizeWindow({ system, systemActions, onClose, onMinimize, 
       subtitle="Look and feel"
       icon={<Palette size={18} />}
       className="window--personalize light-panel"
+      windowKey="personalize"
       windowSize={system.windowSizes.personalize}
       onClose={onClose}
       onMinimize={onMinimize}

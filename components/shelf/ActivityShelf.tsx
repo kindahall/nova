@@ -24,6 +24,7 @@ import type { NovaSystemActions, NovaSystemState } from "@/lib/nova-system";
 type ActivityShelfProps = {
   activeWindows: WindowKey[];
   minimizedWindows: WindowKey[];
+  attentionWindow?: WindowKey;
   system: NovaSystemState;
   systemActions: NovaSystemActions;
   onOpen: (window: WindowKey) => void;
@@ -42,15 +43,19 @@ const shelfRegistry: Record<WindowKey, { label: string; sublabel: string; icon: 
   spaces: { label: "Spaces", sublabel: "Missions", icon: Boxes },
   "offline-mode": { label: "Offline", sublabel: "Local", icon: Folder },
   "activity-center": { label: "Activity", sublabel: "System", icon: Bell },
+  weather: { label: "Weather", sublabel: "Local", icon: Bell },
+  notes: { label: "Notes", sublabel: "Local", icon: Folder },
+  calculator: { label: "Calculator", sublabel: "Math", icon: Grid3X3 },
   "create-app": { label: "Builder", sublabel: "Nova App", icon: PanelsTopLeft },
   "crm-app": { label: "ClientFlow", sublabel: "CRM", icon: PanelsTopLeft },
 };
 
-const pinnedKeys: WindowKey[] = ["my-space", "personalize", "ai-center", "create-app"];
+const pinnedKeys: WindowKey[] = ["my-space", "notes", "calculator", "weather", "personalize", "ai-center", "create-app"];
 
 export function ActivityShelf({
   activeWindows,
   minimizedWindows,
+  attentionWindow,
   system,
   systemActions,
   onOpen,
@@ -101,11 +106,13 @@ export function ActivityShelf({
         return (
           <button
             key={item.label}
-            className={cn("shelf-button", active && "active", minimized && "minimized")}
+            className={cn("shelf-button", active && "active", minimized && "minimized", attentionWindow === key && "attention")}
             type="button"
             onClick={() => handleWindowButton(key)}
             aria-label={`${action} ${item.label}`}
             title={`${action} ${item.label}`}
+            data-context-kind="shelf-window"
+            data-context-id={key}
           >
             <span className="shelf-icon">
               <Icon size={20} />
@@ -125,11 +132,13 @@ export function ActivityShelf({
         return (
           <button
             key={key}
-            className={cn("shelf-button running", active && "active", minimized && "minimized")}
+            className={cn("shelf-button running", active && "active", minimized && "minimized", attentionWindow === key && "attention")}
             type="button"
             onClick={() => handleWindowButton(key)}
             aria-label={`${action} ${item.label}`}
             title={`${action} ${item.label}`}
+            data-context-kind="shelf-window"
+            data-context-id={key}
           >
             <span className="shelf-icon">
               <Icon size={20} />

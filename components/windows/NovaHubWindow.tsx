@@ -26,6 +26,7 @@ export function NovaHubWindow({ system, systemActions, onClose, onMinimize, onFo
       icon={<Sparkles size={18} />}
       className="window--nova-hub"
       tone="dark"
+      windowKey="nova-hub"
       windowSize={system.windowSizes["nova-hub"]}
       onClose={onClose}
       onMinimize={onMinimize}

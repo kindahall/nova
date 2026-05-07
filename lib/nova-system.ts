@@ -63,6 +63,7 @@ export type NovaSystemState = {
   files: NovaFile[];
   activeFileSection: string;
   activeFileName: string;
+  openedFileName?: string;
   fileInsight: string;
   aiProviders: AiProvider[];
   selectedProvider: string;
@@ -93,6 +94,8 @@ export type NovaSystemActions = {
   addFile: () => void;
   setFileSection: (section: string) => void;
   selectFile: (fileName: string) => void;
+  openFile: (fileName: string) => void;
+  closeFile: () => void;
   summarizeFile: (fileName: string) => void;
   shareFile: (fileName: string) => void;
   pinFileToSpace: (fileName: string) => void;
@@ -132,13 +135,14 @@ function mergeFiles(files: NovaFile[] | undefined) {
 }
 
 export const defaultNovaSystemState: NovaSystemState = {
-  stateVersion: 2,
+  stateVersion: 3,
   openWindows: initialWindows,
   minimizedWindows: [],
   windowSizes: {},
   files: recentFiles,
   activeFileSection: "My Space",
   activeFileName: recentFiles[0][0],
+  openedFileName: undefined,
   fileInsight: "Nova is ready to preview, summarize, or route this file into the active space.",
   aiProviders,
   selectedProvider: "Codex",

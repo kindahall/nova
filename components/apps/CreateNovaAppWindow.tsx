@@ -44,6 +44,7 @@ export function CreateNovaAppWindow({ onClose, onMinimize, onFocus, onGenerated 
       icon={<WandSparkles size={18} />}
       className="window--create-app"
       tone="dark"
+      windowKey="create-app"
       onClose={onClose}
       onMinimize={onMinimize}
       onFocus={onFocus}

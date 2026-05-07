@@ -29,6 +29,7 @@ export function WindowFrame({
   subtitle,
   icon,
   className,
+  windowKey,
   windowSize,
   tone = "light",
   children,
@@ -144,6 +145,8 @@ export function WindowFrame({
     <motion.section
       className={cn("window-frame", tone === "dark" && "dark", tone === "command" && "command", className)}
       style={sizeStyle}
+      data-context-kind={windowKey ? "window" : undefined}
+      data-context-id={windowKey}
       initial={{ opacity: 0, scale: 0.96, y: 18 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.96, y: 18 }}

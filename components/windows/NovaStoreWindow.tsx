@@ -67,6 +67,7 @@ export function NovaStoreWindow({ system, systemActions, onClose, onMinimize, on
       icon={<Store size={18} />}
       className="window--nova-store"
       tone="dark"
+      windowKey="nova-store"
       windowSize={system.windowSizes["nova-store"]}
       onClose={onClose}
       onMinimize={onMinimize}

@@ -143,6 +143,7 @@ export function NovaOSApp() {
   const system = useSyncExternalStore(subscribeToSystem, getSystemSnapshot, () => defaultNovaSystemState);
   const [commandOpen, setCommandOpen] = useState(false);
   const [switcherOpen, setSwitcherOpen] = useState(false);
+  const [attentionWindow, setAttentionWindow] = useState<WindowKey | undefined>();
   const displayClass = system.displayMode.toLowerCase().replaceAll(" ", "-");
   const densityClass = system.interfaceDensity.toLowerCase();
   const fontScale = system.fontScale === "Large" ? "1.04" : system.fontScale === "Small" ? "0.96" : "1";
@@ -192,6 +193,7 @@ export function NovaOSApp() {
   }
 
   const openWindow = useCallback((windowKey: WindowKey) => {
+    setAttentionWindow((current) => (current === windowKey ? undefined : current));
     updateSystem((current) => {
       const next = current.openWindows.filter((item) => item !== windowKey);
       return {
@@ -211,6 +213,7 @@ export function NovaOSApp() {
   }, [updateSystem]);
 
   const minimizeWindow = useCallback((windowKey: WindowKey) => {
+    setAttentionWindow(windowKey);
     updateSystem((current) => ({
       ...current,
       openWindows: current.openWindows.filter((item) => item !== windowKey),
@@ -220,6 +223,15 @@ export function NovaOSApp() {
       activityLog: pushActivity(current, "Window minimized", `${windowKey.replaceAll("-", " ")} was sent to the Activity Shelf.`, "system"),
     }));
   }, [updateSystem]);
+
+  useEffect(() => {
+    if (!attentionWindow) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => setAttentionWindow(undefined), 5000);
+    return () => window.clearTimeout(timer);
+  }, [attentionWindow]);
 
   useEffect(() => {
     function handleKeyboard(event: KeyboardEvent) {
@@ -303,6 +315,7 @@ export function NovaOSApp() {
         ...current,
         activeFileSection: "Recent",
         activeFileName: "Untitled_Nova_App.nova",
+        openedFileName: "Untitled_Nova_App.nova",
         fileInsight: "This new Nova document is ready for app planning, notes, or a generated workflow.",
         files: [
           ["Untitled_Nova_App.nova", "Nova Document", "Just now", "16 KB"],
@@ -314,7 +327,7 @@ export function NovaOSApp() {
       }));
     },
     setFileSection(section: string) {
-      updateSystem((current) => ({ ...current, activeFileSection: section }));
+      updateSystem((current) => ({ ...current, activeFileSection: section, openedFileName: undefined }));
     },
     selectFile(fileName: string) {
       updateSystem((current) => {
@@ -322,12 +335,36 @@ export function NovaOSApp() {
         return {
           ...current,
           activeFileName: fileName,
+          openedFileName: undefined,
           fileInsight: file
             ? `${file[0]} is selected. Nova can summarize it, pin it to ${current.activeSpace}, or send a guarded share request.`
             : current.fileInsight,
           activityLog: file ? pushActivity(current, "File selected", `${file[0]} is now active in My Space.`) : current.activityLog,
         };
       });
+    },
+    openFile(fileName: string) {
+      updateSystem((current) => {
+        const file = current.files.find((item) => item[0] === fileName);
+        return {
+          ...current,
+          activeFileName: fileName,
+          openedFileName: file ? fileName : current.openedFileName,
+          fileInsight: file
+            ? `${file[0]} is open. Nova can read, summarize, pin, or guard-share it from this reader.`
+            : current.fileInsight,
+          hubActions: file ? current.hubActions + 1 : current.hubActions,
+          hubSignal: file ? `${file[0]} opened in My Space.` : current.hubSignal,
+          activityLog: file ? pushActivity(current, "File opened", `${file[0]} opened in My Space.`, "system") : current.activityLog,
+        };
+      });
+    },
+    closeFile() {
+      updateSystem((current) => ({
+        ...current,
+        openedFileName: undefined,
+        hubSignal: `${current.activeFileName} closed. My Space returned to preview mode.`,
+      }));
     },
     summarizeFile(fileName: string) {
       updateSystem((current) => {
@@ -624,6 +661,7 @@ export function NovaOSApp() {
           minimizedWindows={system.minimizedWindows}
           commandOpen={commandOpen}
           switcherOpen={switcherOpen}
+          attentionWindow={attentionWindow}
           onOpen={openWindow}
           onClose={closeWindow}
           onMinimize={minimizeWindow}
