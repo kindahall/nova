@@ -81,3 +81,7 @@ The first build should create a web prototype with:
 Do not build a normal dashboard.
 
 Build something that feels like a **new operating system experience**.
+
+## Support
+
+If this project is useful to you, you can support its development with a free and entirely optional tip through the repository's **Sponsor** button. Thank you for your support.
